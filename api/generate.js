@@ -41,38 +41,35 @@ Your job:
   "suggestions": ["Suggestion 1", "Suggestion 2", "Suggestion 3"]
 }
 
-IMPORTANT: Return ONLY raw JSON. No markdown. No backticks. No explanation outside JSON.`;
+Return ONLY raw JSON. No markdown. No backticks. No explanation outside JSON.`;
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1500,
-          }
-        })
-      }
-    );
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error?.message || 'Gemini API error');
+      throw new Error(data.error?.message || 'Anthropic API error');
     }
 
-    // Safely extract text
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = data?.content?.[0]?.text;
 
     if (!text) {
-      throw new Error('No response from Gemini');
+      throw new Error('No response from API');
     }
 
-    // Clean any markdown if Gemini adds it anyway
     const clean = text
       .replace(/```json/gi, '')
       .replace(/```/g, '')
@@ -82,10 +79,9 @@ IMPORTANT: Return ONLY raw JSON. No markdown. No backticks. No explanation outsi
     try {
       parsed = JSON.parse(clean);
     } catch (e) {
-      // If JSON parse fails, return the raw text for debugging
-      return res.status(500).json({ 
-        error: 'Could not parse AI response', 
-        raw: clean.substring(0, 200) 
+      return res.status(500).json({
+        error: 'Could not parse response',
+        raw: clean.substring(0, 300)
       });
     }
 
