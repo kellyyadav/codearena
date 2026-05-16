@@ -32,27 +32,27 @@ If NO, return ONLY this JSON:
 
 ONLY return raw JSON. No markdown. No backticks.`;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'llama-3.1-8b-instant',
+        messages: [{ role: 'user', content: prompt }],
         max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
+        temperature: 0.7
       })
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      return res.status(500).json({ error: data.error?.message || 'API error' });
+      return res.status(500).json({ error: data.error?.message || 'Groq API error' });
     }
 
-    const text = data?.content?.[0]?.text || '';
+    const text = data?.choices?.[0]?.message?.content || '';
     const clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
 
     try {
