@@ -912,21 +912,17 @@ Your job:
 
 Respond ONLY with valid JSON. No markdown, no explanation outside the JSON.`;
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        messages:[{ role:'user', content:prompt }]
-      })
-    });
-
-    const data = await res.json();
-    const text = data.content?.map(c=>c.text||'').join('').trim();
-    let parsed;
-    try { parsed = JSON.parse(text.replace(/```json|```/g,'').trim()); }
-    catch(e){ throw new Error('Could not parse AI response'); }
+    const res = await fetch('/api/generate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    situation,
+    difficulty: selectedDiff,
+    language: lang
+  })
+});
+const parsed = await res.json();
+if (parsed.error) throw new Error(parsed.error);
 
     resultEl.style.display='block';
 
