@@ -1,91 +1,66 @@
 module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  const { situation, difficulty, language } = req.body;
-  const langNote = language === 'any'
-    ? 'Any programming language'
-    : `Preferred language: ${language}`;
-
-  const prompt = `You are an expert coding question designer for a competitive programming platform.
-
-A user described this real-life situation:
-"${situation}"
-
-Difficulty requested: ${difficulty}
-${langNote}
-
-Your job:
-1. FIRST decide: can this situation be turned into a meaningful, solvable coding question?
-   - It must have a clear computational problem
-   - It must have defined inputs and outputs
-   - It must be solvable with code
-
-2. If YES, respond with ONLY this JSON (no markdown, no backticks):
-{
-  "valid": true,
-  "title": "Short descriptive title",
-  "difficulty": "${difficulty}",
-  "problem": "Full problem statement with context from the situation",
-  "examples": [{"input": "...", "output": "...", "explanation": "..."}],
-  "constraints": ["constraint 1", "constraint 2"],
-  "hint": "One helpful hint without giving away the solution",
-  "tags": ["array", "math"]
-}
-
-3. If NO, respond with ONLY this JSON (no markdown, no backticks):
-{
-  "valid": false,
-  "reason": "Clear explanation of why this cannot become a coding question",
-  "suggestions": ["Suggestion 1", "Suggestion 2", "Suggestion 3"]
-}
-
-Return ONLY raw JSON. No markdown. No backticks. No explanation outside JSON.`;
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const situation = body?.situation;
+    const difficulty = body?.difficulty || 'easy';
+    const language = body?.language || 'any';
+
+    if (!situation) return res.status(400).json({ error: 'No situation provided' });
+
+    const langNote = language === 'any' ? 'Any programming language' : `Preferred language: ${language}`;
+
+    const prompt = `You are an expert coding question designer.
+
+A user described this real-life situation: "${situation}"
+Difficulty: ${difficulty}
+${langNote}
+
+Decide: can this become a solvable coding question with clear inputs/outputs?
+
+If YES, return ONLY this JSON:
+{"valid":true,"title":"Short title","difficulty":"${difficulty}","problem":"Full problem statement","examples":[{"input":"...","output":"...","explanation":"..."}],"constraints":["constraint 1"],"hint":"One hint","tags":["tag1"]}
+
+If NO, return ONLY this JSON:
+{"valid":false,"reason":"Why not","suggestions":["Fix 1","Fix 2","Fix 3"]}
+
+ONLY return raw JSON. No markdown. No backticks.`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'llama3-8b-8192',
-        messages: [{ role: 'user', content: prompt }],
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
-        temperature: 0.7
+        messages: [{ role: 'user', content: prompt }]
       })
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error?.message || 'Groq API error');
+      return res.status(500).json({ error: data.error?.message || 'API error' });
     }
 
-    const text = data?.choices?.[0]?.message?.content;
+    const text = data?.content?.[0]?.text || '';
+    const clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
 
-    if (!text) {
-      throw new Error('No response from Groq');
-    }
-
-    const clean = text
-      .replace(/```json/gi, '')
-      .replace(/```/g, '')
-      .trim();
-
-    let parsed;
     try {
-      parsed = JSON.parse(clean);
+      const parsed = JSON.parse(clean);
+      return res.status(200).json(parsed);
     } catch (e) {
-      return res.status(500).json({
-        error: 'Could not parse response',
-        raw: clean.substring(0, 300)
-      });
+      return res.status(500).json({ error: 'Parse failed', raw: clean.substring(0, 200) });
     }
-
-    return res.status(200).json(parsed);
 
   } catch (err) {
     return res.status(500).json({ error: err.message });
