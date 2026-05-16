@@ -1162,7 +1162,15 @@ sb.channel('rt')
   if(session?.user){
     currentUser=session.user;showNavUser(currentUser);
     await upsertProfile(currentUser);
-    const {data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).single().catch(()=>({data:null}));
+    const { data: prof, error } = await sb
+  .from('profiles')
+  .select('*')
+  .eq('id', currentUser.id)
+  .single();
+
+if (error) {
+  console.log(error);
+}
     renderBadges(prof);
     loadUserGraphs(currentUser.id);
   } else { showProgressLocked(); renderBadges(null); }
