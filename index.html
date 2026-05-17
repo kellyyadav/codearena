@@ -839,13 +839,20 @@ async function signInGoogle(){
   const { error } = await sb.auth.signInWithOAuth({ 
     provider: 'google', 
     options: { 
-      redirectTo: 'https://codearena-peach.vercel.app'
+      redirectTo: window.location.origin,
+      queryParams: { prompt: 'select_account' }
     } 
   });
   if(error) console.log('Login error:', error.message);
 }
 async function signOut(){ await sb.auth.signOut(); currentUser=null; showNavGuest(); showProgressLocked(); }
-
+// Force session check on page load
+sb.auth.getSession().then(({data:{session}})=>{
+  if(session?.user && !currentUser){
+    currentUser = session.user;
+    showNavUser(currentUser);
+  }
+});
 sb.auth.onAuthStateChange(async(_,session)=>{
   if(session?.user){
     currentUser=session.user; closeModal();
