@@ -1001,7 +1001,7 @@ async function publishQuestion(q){
     // Update questions count
     const {data:prof} = await sb.from('profiles').select('questions_count').eq('id',currentUser.id).single();
     await sb.from('profiles').update({ questions_count: (prof?.questions_count||0)+1 }).eq('id',currentUser.id);
-    loadLeaderboard(); loadStats();
+    loadLeaderboard(); loadStats();loadQuestions();
     // Show success with solve button
     if(publishBtn){
       publishBtn.textContent='✓ Published!';
