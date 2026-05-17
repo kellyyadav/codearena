@@ -849,7 +849,9 @@ async function signOut(){
   await sb.auth.signOut(); 
   currentUser=null; 
   showNavGuest(); 
-  showProgressLocked(); 
+  showProgressLocked();
+  renderBadges(null);
+  window.location.reload();
 }
 
 // Force session check on page load
