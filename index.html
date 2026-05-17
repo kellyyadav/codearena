@@ -1214,7 +1214,7 @@ sb.channel('rt')
       renderBadges(null);
     }
   } catch(e){ showProgressLocked(); renderBadges(null); }
-  await Promise.all([loadStats(),loadTicker(),loadBattles(),loadLeaderboard()]);
+  await Promise.all([loadStats(),loadTicker(),loadBattles(),loadLeaderboard(),loadQuestions()]);
 })();
 </script>
 </body>
