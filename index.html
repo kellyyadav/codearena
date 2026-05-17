@@ -839,7 +839,7 @@ sb.auth.onAuthStateChange(async(_,session)=>{
     renderBadges(prof);
     loadUserGraphs(currentUser.id);
   } else { currentUser=null; showNavGuest(); renderBadges(null); }
-});
+}); 
 
 async function upsertProfile(u){
   try {
