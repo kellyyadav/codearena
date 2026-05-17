@@ -839,13 +839,19 @@ async function signInGoogle(){
   const { error } = await sb.auth.signInWithOAuth({ 
     provider: 'google', 
     options: { 
-      redirectTo: window.location.origin,
-      queryParams: { prompt: 'select_account' }
+      redirectTo: 'https://codearena-peach.vercel.app'
     } 
   });
   if(error) console.log('Login error:', error.message);
 }
-async function signOut(){ await sb.auth.signOut(); currentUser=null; showNavGuest(); showProgressLocked(); }
+
+async function signOut(){ 
+  await sb.auth.signOut(); 
+  currentUser=null; 
+  showNavGuest(); 
+  showProgressLocked(); 
+}
+
 // Force session check on page load
 sb.auth.getSession().then(({data:{session}})=>{
   if(session?.user && !currentUser){
@@ -853,6 +859,7 @@ sb.auth.getSession().then(({data:{session}})=>{
     showNavUser(currentUser);
   }
 });
+
 sb.auth.onAuthStateChange(async(_,session)=>{
   if(session?.user){
     currentUser=session.user; closeModal();
@@ -867,10 +874,31 @@ sb.auth.onAuthStateChange(async(_,session)=>{
 });
 
 async function upsertProfile(u){
-  const {data}=await sb.from('profiles').select('id').eq('id',u.id).single().catch(()=>({data:null}));
-  if(!data) await sb.from('profiles').insert({ id:u.id, username:u.user_metadata?.name||u.email.split('@')[0], avatar_url:u.user_metadata?.avatar_url||null, badge:'none', easy_solved:0, medium_solved:0, hard_solved:0, battles_won:0, questions_count:0 });
+  try {
+    const {data} = await sb.from('profiles').select('id').eq('id',u.id).single();
+    if(!data){
+      await sb.from('profiles').insert({ 
+        id:u.id, 
+        username:u.user_metadata?.name||u.email.split('@')[0], 
+        avatar_url:u.user_metadata?.avatar_url||null, 
+        badge:'none', 
+        easy_solved:0, medium_solved:0, hard_solved:0, 
+        battles_won:0, questions_count:0 
+      });
+    }
+  } catch(e){
+    try {
+      await sb.from('profiles').insert({ 
+        id:u.id, 
+        username:u.user_metadata?.name||u.email.split('@')[0], 
+        avatar_url:u.user_metadata?.avatar_url||null, 
+        badge:'none', 
+        easy_solved:0, medium_solved:0, hard_solved:0, 
+        battles_won:0, questions_count:0 
+      });
+    } catch(e2){ console.log('profile exists'); }
+  }
 }
-
 function showNavUser(u){
   const name=u.user_metadata?.name||u.email.split('@')[0];
   const av=u.user_metadata?.avatar_url;
