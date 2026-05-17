@@ -1155,7 +1155,7 @@ async function loadBattles(){
 async function loadQuestions(){
   try {
     const {data} = await sb.from('questions')
-      .select('id,title,difficulty,tags,created_at,creator:profiles!questions_created_by_fkey(username)')
+      .select('id,title,difficulty,tags,created_at,created_by,creator:profiles!questions_created_by_fkey(username)')
       .order('created_at',{ascending:false})
       .limit(20);
     const el = document.getElementById('questions-container');
