@@ -836,7 +836,13 @@ for(let i=0;i<120;i++){
 
 // ── AUTH ────────────────────────────────
 async function signInGoogle(){
-  await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo:window.location.origin } });
+  const { error } = await sb.auth.signInWithOAuth({ 
+    provider: 'google', 
+    options: { 
+      redirectTo: 'https://codearena-peach.vercel.app'
+    } 
+  });
+  if(error) console.log('Login error:', error.message);
 }
 async function signOut(){ await sb.auth.signOut(); currentUser=null; showNavGuest(); showProgressLocked(); }
 
@@ -1167,9 +1173,24 @@ async function loadQuestions(){
         </div>
         <div style="font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:var(--t1);line-height:1.3;">${q.title}</div>
         <div style="font-size:.72rem;color:var(--t3);">by ${q.creator?.username||'Anonymous'}</div>
-        <button onclick="window.location.href='/solve.html?id=${q.id}'" style="margin-top:auto;width:100%;padding:9px;background:var(--star);color:#0f1117;border:none;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;">▶ Solve Now</button>
+        <button onclick="window.location.href='/solve.html?id=${q.id}'" style="margin-top:auto;width:100%;padding:9px;background:var(--star);color:#0f1117;border:none;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;">▶ Solve Now</button> ${currentUser && q.created_by === currentUser.id ? `<button onclick="deleteQuestion('${q.id}',this)" style="width:100%;padding:7px;background:transparent;color:var(--rose);border:1px solid rgba(251,113,133,.2);border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;margin-top:4px;">🗑 Delete</button>` : ''} ${currentUser && q.created_by === currentUser.id ? `<button onclick="deleteQuestion('${q.id}',this)" style="width:100%;padding:7px;background:transparent;color:var(--rose);border:1px solid rgba(251,113,133,.2);border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;margin-top:4px;">🗑 Delete</button>` : ''}
       </div>`).join('');
   } catch(e){ console.log('questions error:',e); }
+}
+  async function deleteQuestion(id, btn){
+  if(!confirm('Delete this question?')) return;
+  btn.textContent = 'Deleting…';
+  const { error } = await sb.from('questions').delete().eq('id', id);
+  if(!error){
+    // Update count
+    const {data:prof} = await sb.from('profiles').select('questions_count').eq('id',currentUser.id).single();
+    await sb.from('profiles').update({ questions_count: Math.max(0,(prof?.questions_count||1)-1) }).eq('id',currentUser.id);
+    loadQuestions();
+    loadStats();
+  } else {
+    btn.textContent = '🗑 Delete';
+    alert('Could not delete. Try again!');
+  }
 }
 // ── LEADERBOARD ────────────────────────────
 async function loadLeaderboard(){
