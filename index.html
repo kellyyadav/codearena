@@ -835,7 +835,7 @@ sb.auth.onAuthStateChange(async(_,session)=>{
     currentUser=session.user; closeModal();
     showNavUser(currentUser);
     await upsertProfile(currentUser);
-    const {data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).single().catch(()=>({data:null}));
+    const {data:prof} = await sb.from('profiles').select('*').eq('id',currentUser.id).single().then(r=>({data:r.data})).catch(()=>({data:null}));
     renderBadges(prof);
     loadUserGraphs(currentUser.id);
   } else { currentUser=null; showNavGuest(); renderBadges(null); }
