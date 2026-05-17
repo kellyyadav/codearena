@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
 <!-- ─── DYNAMIC OG TAGS (filled by JS) ─── -->
-<title>CodeArena Badge</title>
-<meta name="description" content="Earned on CodeArena — a real coding battle platform." id="meta-desc"/>
+<title>Crack It Badge</title>
+<meta name="description" content="Earned on Crack It — a real coding battle platform." id="meta-desc"/>
 
 <!-- Open Graph (LinkedIn reads these for preview card) -->
 <meta property="og:type" content="profile" id="og-type"/>
-<meta property="og:title" content="CodeArena Badge" id="og-title"/>
-<meta property="og:description" content="Earned by solving real coding challenges on CodeArena." id="og-desc"/>
-<meta property="og:image" content="https://codearena-peach.vercel.app/og-badge.png">
+<meta property="og:title" content="Crack It Badge" id="og-title"/>
+<meta property="og:description" content="Earned by solving real coding challenges on Crack It." id="og-desc"/>
+<meta property="og:image" content="https://Crack It-peach.vercel.app/og-badge.png">
 <meta property="og:url" content="" id="og-url"/>
 <meta name="twitter:card" content="summary_large_image"/>
 
@@ -180,7 +180,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 <div id="stars"></div>
 
 <nav>
-  <a href="/" class="logo">CodeArena <span class="logo-star">⋆˙⟡</span></a>
+  <a href="/" class="logo">Crack It <span class="logo-star">⋆˙⟡</span></a>
   <a href="/" class="nav-back">← Back to Arena</a>
 </nav>
 
@@ -223,9 +223,9 @@ function getParams() {
 }
 
 const BADGE_CONFIG = {
-  warrior: { icon:'⚔️', name:'WARRIOR', color:'var(--sky)', chipClass:'chip-sky',  cardClass:'bc-warrior', req:'Solved 10 Easy questions in real battles', desc:'Completed 10 Easy coding battles on CodeArena.' },
-  eagle:   { icon:'🦅', name:'EAGLE',   color:'var(--mint)', chipClass:'chip-mint', cardClass:'bc-eagle',   req:'Solved 10 Medium questions in real battles', desc:'Completed 10 Medium coding battles on CodeArena.' },
-  divine:  { icon:'⚡', name:'DIVINE',  color:'var(--star)', chipClass:'chip-yellow',cardClass:'bc-divine', req:'Solved 10 Hard questions in real battles', desc:'Completed 10 Hard coding battles on CodeArena — the highest rank.' },
+  warrior: { icon:'⚔️', name:'WARRIOR', color:'var(--sky)', chipClass:'chip-sky',  cardClass:'bc-warrior', req:'Solved 10 Easy questions in real battles', desc:'Completed 10 Easy coding battles on Crack It.' },
+  eagle:   { icon:'🦅', name:'EAGLE',   color:'var(--mint)', chipClass:'chip-mint', cardClass:'bc-eagle',   req:'Solved 10 Medium questions in real battles', desc:'Completed 10 Medium coding battles on Crack It.' },
+  divine:  { icon:'⚡', name:'DIVINE',  color:'var(--star)', chipClass:'chip-yellow',cardClass:'bc-divine', req:'Solved 10 Hard questions in real battles', desc:'Completed 10 Hard coding battles on Crack It — the highest rank.' },
 };
 
 function rk(rk){if(rk==='g')return'#ffd700';if(rk==='s')return'#b0c0d0';return'#cd7f32';}
@@ -262,7 +262,7 @@ async function loadBadge() {
 
   // Update OG tags dynamically
   const pageUrl = window.location.href;
-  const ogTitle = `${profile.username} earned the ${cfg.name} badge on CodeArena ⋆˙⟡`;
+  const ogTitle = `${profile.username} earned the ${cfg.name} badge on Crack It ⋆˙⟡`;
   const ogDesc  = `${cfg.desc} ${profile.battles_won} battles won. Real coding battles — no fakes.`;
   document.title = ogTitle;
   document.getElementById('og-title').content  = ogTitle;
@@ -279,7 +279,7 @@ async function loadBadge() {
     <!-- BADGE VISUAL CARD -->
     <div class="badge-card ${cfg.cardClass}" id="badge-visual">
       <div class="badge-platform">
-        <span style="color:var(--star);">⋆˙⟡</span> CodeArena
+        <span style="color:var(--star);">⋆˙⟡</span> Crack It
       </div>
 
       <div class="badge-icon-wrap">
@@ -361,8 +361,8 @@ async function loadBadge() {
         <ol class="how-steps">
           <li><div class="how-step-num">1</div><span>Click <strong style="color:var(--t1);">"Add to LinkedIn Profile"</strong> above — it opens LinkedIn directly</span></li>
           <li><div class="how-step-num">2</div><span>On LinkedIn: <strong style="color:var(--t1);">Add to profile → Licenses & Certifications</strong></span></li>
-          <li><div class="how-step-num">3</div><span>Name: <strong style="color:var(--t1);">CodeArena ${cfg.name} Badge</strong></span></li>
-          <li><div class="how-step-num">4</div><span>Issuing org: <strong style="color:var(--t1);">CodeArena</strong></span></li>
+          <li><div class="how-step-num">3</div><span>Name: <strong style="color:var(--t1);">Crack It ${cfg.name} Badge</strong></span></li>
+          <li><div class="how-step-num">4</div><span>Issuing org: <strong style="color:var(--t1);">Crack It</strong></span></li>
           <li><div class="how-step-num">5</div><span>Credential URL: paste your badge link — recruiters can verify it ✦</span></li>
         </ol>
       </div>
@@ -377,9 +377,9 @@ function shareLinkedInPost() {
   const cfg = BADGE_CONFIG[badgeToShow];
   const url = encodeURIComponent(window.location.href);
   const text = encodeURIComponent(
-    `I just earned the ${cfg.icon} ${cfg.name} badge on CodeArena ⋆˙⟡\n\n` +
+    `I just earned the ${cfg.icon} ${cfg.name} badge on Crack It ⋆˙⟡\n\n` +
     `${cfg.desc}\n\n` +
-    `CodeArena is a platform where you describe real-life situations and battle live opponents to solve AI-generated coding questions.\n\n` +
+    `Crack It is a platform where you describe real-life situations and battle live opponents to solve AI-generated coding questions.\n\n` +
     `Verify my badge here:`
   );
   window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&summary=${text}`, '_blank', 'width=600,height=600');
@@ -387,8 +387,8 @@ function shareLinkedInPost() {
 
 function addLinkedInCert(badgeType, username, badgeUrl) {
   const cfg = BADGE_CONFIG[badgeType];
-  const certName = encodeURIComponent(`CodeArena ${cfg.name} Badge`);
-  const orgName  = encodeURIComponent('CodeArena');
+  const certName = encodeURIComponent(`Crack It ${cfg.name} Badge`);
+  const orgName  = encodeURIComponent('Crack It');
   const certUrl  = encodeURIComponent(badgeUrl);
   // LinkedIn Add Certification deep link
   const liUrl = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${certName}&organizationName=${orgName}&certUrl=${certUrl}&certId=${badgeType}_${username}`;
@@ -413,7 +413,7 @@ function showNotFound(title, desc) {
       <div class="nf-ico">🏅</div>
       <div class="nf-t">${title}</div>
       <p class="nf-d">${desc}</p>
-      <a href="/" style="display:inline-block;margin-top:20px;padding:10px 22px;background:var(--star);color:#0f1117;border-radius:8px;font-weight:700;font-size:.84rem;text-decoration:none;">Go to CodeArena →</a>
+      <a href="/" style="display:inline-block;margin-top:20px;padding:10px 22px;background:var(--star);color:#0f1117;border-radius:8px;font-weight:700;font-size:.84rem;text-decoration:none;">Go to Crack It →</a>
     </div>`;
 }
 
