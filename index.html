@@ -794,7 +794,6 @@ Or: My phone battery drains faster when I have more apps open..." rows="4"></tex
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const SUPABASE_URL  = 'https://tcawycumfawsxkcfnlpv.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjYXd5Y3VtZmF3c3hrY2ZubHB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MDc5MTEsImV4cCI6MjA5NDQ4MzkxMX0.8RJOpUxiMdveBMaZ1vadyObZLenumzvYYcBg5arIGYU';
-
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const { createClient } = supabase;
@@ -1104,7 +1103,7 @@ function renderBadges(profile) {
              </button>`
           : `<div class="badge-lock-label">🔒 Locked</div>`
         }
-      ` : `<div class="badge-lock-label"><a href="#" onclick="openModal();return false;" style="color:var(--star);text-decoration:none;font-size:.72rem;">Log in to track →</a></div>`}
+      ` : `<div style="margin-top:10px;font-size:.72rem;color:var(--t3);">Solve questions to unlock! 🔒</div>`}
     </div>`;
   }).join('');
 }
