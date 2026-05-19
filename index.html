@@ -837,40 +837,29 @@ async function signInGoogle() {
     });
 }
 
-async function signOut() {
-    console.log("Sign out called!");
-    try {
-        // Clear matchmaking queue
-        if (currentUser) {
-            await sb.from('matchmaking').delete().eq('user_id', currentUser.id);
-        }
-        
-        // Sign out from Supabase
-        const { error } = await sb.auth.signOut();
-        if (error) throw error;
-        
-        // Clear current user
-        currentUser = null;
-        
-        // Update UI
-        showNavGuest();
-        showProgressLocked();
-        renderBadges(null);
-        loadQuestions();
-        
-        // Reset match button
-        const matchArea = document.getElementById('match-btn-area');
-        if (matchArea) {
-            matchArea.innerHTML = `<button class="btn-match" onclick="findMatch()">⚔ Find Opponent</button>`;
-        }
-        
-        console.log("Signed out successfully!");
-        alert("Signed out successfully!");
-        
-    } catch (error) {
-        console.error('Sign out error:', error);
-        alert("Error signing out: " + error.message);
+async function signOut(){
+  console.log("Sign out called!");
+  try {
+    if(currentUser){
+      await sb.from('matchmaking').delete().eq('user_id', currentUser.id);
     }
+    const { error } = await sb.auth.signOut();
+    if(error) throw error;
+    currentUser = null;
+    showNavGuest();
+    showProgressLocked();
+    renderBadges(null);
+    loadQuestions();
+    const matchArea = document.getElementById('match-btn-area');
+    if(matchArea) {
+      matchArea.innerHTML = `<button class="btn-match" onclick="findMatch()">⚔ Find Opponent</button>`;
+    }
+    alert("Signed out successfully!");
+    location.reload();
+  } catch(error) {
+    console.error('Sign out error:', error);
+    alert("Error signing out: " + error.message);
+  }
 }
 
 async function upsertProfile(user) {
@@ -1068,53 +1057,37 @@ async function publishQuestion(q) {
     }
 }
 
-// ==================== DELETE QUESTION ====================
 async function deleteQuestion(questionId, event) {
-    event.stopPropagation(); // Prevent card click
-    
-    if (!currentUser) {
-        alert('Please login to delete questions');
-        return;
+  if(event) event.stopPropagation();
+  if(!currentUser){
+    alert('Please login to delete questions');
+    return;
+  }
+  if(!confirm('Are you sure you want to delete this question?')) return;
+  try {
+    const { data: question } = await sb
+      .from('questions')
+      .select('created_by')
+      .eq('id', questionId)
+      .single();
+    if(!question || question.created_by !== currentUser.id){
+      alert('You can only delete your own questions!');
+      return;
     }
-    
-    const confirm = window.confirm('Are you sure you want to delete this question? This action cannot be undone.');
-    if (!confirm) return;
-    
-    try {
-        // Check if user is the owner
-        const { data: question, error: fetchError } = await sb
-            .from('questions')
-            .select('created_by')
-            .eq('id', questionId)
-            .single();
-        
-        if (fetchError) throw fetchError;
-        
-        if (question.created_by !== currentUser.id) {
-            alert('You can only delete your own questions!');
-            return;
-        }
-        
-        // Delete the question
-        const { error } = await sb.from('questions').delete().eq('id', questionId);
-        
-        if (error) throw error;
-        
-        // Update user's question count
-        const profile = await getProfile(currentUser.id);
-        await sb.from('profiles').update({ 
-            questions_count: Math.max(0, (profile?.questions_count || 0) - 1)
-        }).eq('id', currentUser.id);
-        
-        alert('Question deleted successfully!');
-        loadQuestions(); // Refresh the list
-        loadStats();
-        loadLeaderboard();
-        
-    } catch (err) {
-        console.error('Delete error:', err);
-        alert('Error deleting question: ' + err.message);
-    }
+    const { error } = await sb.from('questions').delete().eq('id', questionId);
+    if(error) throw error;
+    const profile = await getProfile(currentUser.id);
+    await sb.from('profiles')
+      .update({ questions_count: Math.max(0, (profile?.questions_count || 0) - 1) })
+      .eq('id', currentUser.id);
+    alert('Question deleted successfully!');
+    loadQuestions();
+    loadStats();
+    loadLeaderboard();
+  } catch(err) {
+    console.error('Delete error:', err);
+    alert('Delete failed: ' + err.message);
+  }
 }
 
 // ==================== LOAD QUESTIONS ====================
@@ -1123,7 +1096,7 @@ async function loadQuestions() {
     if (!container) return;
     
     try {
-        const { data: questions, error } = await sb
+        const { data: questions, error } = await supabase
             .from('questions')
             .select('*, profiles!created_by(id, username)')
             .order('created_at', { ascending: false })
@@ -1132,36 +1105,63 @@ async function loadQuestions() {
         if (error) throw error;
         
         if (!questions || questions.length === 0) {
-            container.innerHTML = `<div class="empty"><div class="empty-ico">📭</div><div class="empty-t">No questions yet</div><div class="empty-d">Be the first to generate and publish a question!</div></div>`;
+            container.innerHTML = `<div class="empty"><div class="empty-ico">📭</div><div class="empty-t">No Questions Yet</div><div class="empty-d">Be the first to generate and publish a question!</div></div>`;
             return;
         }
         
         container.innerHTML = questions.map(q => {
-            const isOwner = currentUser && q.profiles?.id === currentUser.id;
+            // Check if current user is the owner of this question
+            const isOwner = currentUser && q.profiles && q.profiles.id === currentUser.id;
+            
+            // Set difficulty class for styling
+            let diffClass = 'chip-mint';
+            if (q.difficulty === 'medium') diffClass = 'chip-yellow';
+            if (q.difficulty === 'hard') diffClass = 'chip-rose';
+            
             return `
-            <div class="card card-hover" style="cursor:pointer;position:relative;" onclick="viewQuestion(${q.id})">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                    <span class="chip ${q.difficulty === 'hard' ? 'chip-rose' : (q.difficulty === 'medium' ? 'chip-yellow' : 'chip-mint')}">${q.difficulty}</span>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:.65rem;color:var(--t3);">by ${q.profiles?.username || 'Anonymous'}</span>
-                        ${isOwner ? `<button onclick="deleteQuestion(${q.id}, event)" style="background:rgba(251,113,133,0.2);border:none;color:var(--rose);cursor:pointer;padding:4px 8px;border-radius:6px;font-size:.65rem;font-weight:600;">🗑 Delete</button>` : ''}
+                <div class="card card-hover" style="cursor:pointer; position:relative;" onclick="viewQuestion(${q.id})">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <span class="chip ${diffClass}">${q.difficulty || 'easy'}</span>
+                            ${(q.tags || []).slice(0,2).map(t => `<span class="chip chip-sky" style="font-size:.6rem;">${escapeHtml(t)}</span>`).join('')}
+                        </div>
+                        ${isOwner ? `
+                            <button onclick="deleteQuestion(${q.id}, event)" 
+                                style="background:rgba(251,113,133,0.2); border:none; color:#fb7185; cursor:pointer; padding:4px 10px; border-radius:6px; font-size:.65rem; font-weight:600; z-index:10;">
+                                🗑 Delete
+                            </button>
+                        ` : ''}
+                    </div>
+                    <div style="font-weight:600; margin-bottom:8px; font-size:.95rem;">${escapeHtml(q.title || 'Untitled')}</div>
+                    <p style="font-size:.75rem; color:var(--t2); line-height:1.6; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${escapeHtml((q.problem || '').substring(0, 120))}...</p>
+                    <div style="margin-top:12px; font-size:.65rem; color:var(--t3); display:flex; justify-content:space-between; align-items:center;">
+                        <span>by ${q.profiles?.username || 'Anonymous'}</span>
+                        <span>📅 ${new Date(q.created_at).toLocaleDateString()}</span>
                     </div>
                 </div>
-                <div style="font-weight:600;margin-bottom:8px;font-size:.9rem;">${q.title}</div>
-                <p style="font-size:.75rem;color:var(--t2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${(q.problem || '').substring(0, 120)}...</p>
-                <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
-                    ${(q.tags || []).slice(0, 2).map(t => `<span style="font-size:.6rem;padding:2px 6px;background:var(--card2);border-radius:4px;">${t}</span>`).join('')}
-                </div>
-            </div>
-        `}).join('');
+            `;
+        }).join('');
+        
     } catch (err) {
         console.error('Load questions error:', err);
-        container.innerHTML = `<div class="empty"><div class="empty-ico">⚠️</div><div class="empty-t">Error loading questions</div></div>`;
+        container.innerHTML = `<div class="empty"><div class="empty-ico">⚠️</div><div class="empty-t">Error Loading Questions</div><div class="empty-d">Please refresh the page</div></div>`;
     }
 }
 
-function viewQuestion(id) {
-    window.location.href = `/solve.html?id=${id}`;
+// Helper function to escape HTML
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+// View question function
+function viewQuestion(questionId) {
+    window.location.href = `/solve.html?id=${questionId}`;
 }
 
 // ==================== STATS ====================
