@@ -796,7 +796,6 @@ Or: My phone battery drains faster when I have more apps open..." rows="4"></tex
   <div class="f-copy">Built for real coders. Powered by Supabase + Vercel.</div>
   <div class="f-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a></div>
 </footer>
-
 <script>
 // ==================== SUPABASE CONFIG ====================
 const SUPABASE_URL = 'https://tcawycumfawsxkcfnlpv.supabase.co';
@@ -839,25 +838,38 @@ async function signInGoogle() {
 }
 
 async function signOut() {
+    console.log("Sign out called!");
     try {
-        // Clear matchmaking queue if user was waiting
+        // Clear matchmaking queue
         if (currentUser) {
             await sb.from('matchmaking').delete().eq('user_id', currentUser.id);
         }
-        await sb.auth.signOut();
+        
+        // Sign out from Supabase
+        const { error } = await sb.auth.signOut();
+        if (error) throw error;
+        
+        // Clear current user
         currentUser = null;
+        
+        // Update UI
         showNavGuest();
         showProgressLocked();
         renderBadges(null);
         loadQuestions();
-        // Reset match button area
+        
+        // Reset match button
         const matchArea = document.getElementById('match-btn-area');
         if (matchArea) {
             matchArea.innerHTML = `<button class="btn-match" onclick="findMatch()">⚔ Find Opponent</button>`;
         }
-        console.log('Signed out successfully');
+        
+        console.log("Signed out successfully!");
+        alert("Signed out successfully!");
+        
     } catch (error) {
         console.error('Sign out error:', error);
+        alert("Error signing out: " + error.message);
     }
 }
 
@@ -897,10 +909,10 @@ function showNavUser(user) {
     const navAuth = document.getElementById('nav-auth');
     if (navAuth) {
         navAuth.innerHTML = `
-            <span class="nav-uname">${name}</span>
-            ${avatar ? `<img src="${avatar}" class="nav-avatar" style="width:30px;height:30px;border-radius:50%;">` : 
-                        `<div style="width:30px;height:30px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:700;">${name[0].toUpperCase()}</div>`}
-            <button onclick="signOut()" style="padding:5px 12px;background:transparent;border:1px solid var(--rose);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;">Sign out</button>
+            <span class="nav-uname" style="font-size:.8rem;font-weight:600;">${name}</span>
+            ${avatar ? `<img src="${avatar}" class="nav-avatar" style="width:30px;height:30px;border-radius:50%;cursor:pointer;">` : 
+                        `<div style="width:30px;height:30px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;">${name[0].toUpperCase()}</div>`}
+            <button onclick="signOut()" style="padding:5px 12px;background:rgba(251,113,133,0.15);border:1px solid var(--rose);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;font-weight:600;">Sign out</button>
         `;
     }
 }
@@ -932,15 +944,15 @@ async function generateQuestion() {
     resultEl.style.display = 'none';
 
     try {
-        // Mock AI response for now (replace with actual API call)
+        // Mock response (replace with actual API later)
         const mockQuestion = {
             valid: true,
             title: "Coding Challenge: " + situation.substring(0, 40),
             difficulty: selectedDiff,
-            problem: `Based on your situation: "${situation}"\n\nWrite an efficient solution to solve this problem.`,
-            examples: [{ input: "Sample input", output: "Sample output", explanation: "How it works" }],
-            constraints: ["1 ≤ n ≤ 10^5", "Time limit: 2 seconds"],
-            hint: "Think about edge cases",
+            problem: `Based on your situation: "${situation}"\n\nWrite an efficient solution to solve this problem with proper input/output handling.`,
+            examples: [{ input: "Sample input 1", output: "Sample output 1", explanation: "Explanation here" }],
+            constraints: ["1 ≤ n ≤ 10^5", "Time limit: 2 seconds", "Memory limit: 256 MB"],
+            hint: "Think about edge cases and optimize your solution",
             tags: ["algorithm", "problem-solving"]
         };
         
@@ -963,21 +975,31 @@ function displayGeneratedQuestion(q) {
         <div style="background:var(--bg);border-radius:7px;padding:10px;margin-top:8px;">
             <span style="color:var(--sky);">Input:</span> ${e.input}<br>
             <span style="color:var(--mint);">Output:</span> ${e.output}
+            ${e.explanation ? `<br><span style="color:var(--t3);">${e.explanation}</span>` : ''}
         </div>
     `).join('');
     
     resultEl.style.display = 'block';
     resultEl.innerHTML = `
         <div class="qresult-card">
-            <div style="display:flex;gap:10px;margin-bottom:14px;">
+            <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
                 <span class="chip ${diffClass}">${q.difficulty}</span>
+                ${(q.tags || []).map(t => `<span class="chip chip-sky">${t}</span>`).join('')}
             </div>
             <div class="qresult-title">${q.title}</div>
             <p class="qresult-body">${q.problem}</p>
             <div style="margin-top:14px;">
-                <div style="font-size:.72rem;font-weight:600;color:var(--t2);">Examples</div>
+                <div style="font-size:.72rem;font-weight:600;color:var(--t2);margin-bottom:4px;">📝 Examples</div>
                 ${examplesHtml}
             </div>
+            ${q.constraints && q.constraints.length ? `
+            <div style="margin-top:14px;">
+                <div style="font-size:.72rem;font-weight:600;color:var(--t2);margin-bottom:4px;">⚠️ Constraints</div>
+                <ul style="margin-left:20px;color:var(--t3);font-size:.75rem;">
+                    ${q.constraints.map(c => `<li>${c}</li>`).join('')}
+                </ul>
+            </div>` : ''}
+            ${q.hint ? `<div style="margin-top:14px;background:rgba(244,196,48,.1);border-radius:8px;padding:10px;font-size:.8rem;color:var(--star);">💡 Hint: ${q.hint}</div>` : ''}
             <div class="qresult-actions">
                 <button class="btn-action btn-publish" onclick="publishQuestion(${JSON.stringify(q).replace(/"/g, '&quot;')})">✦ Publish to Arena</button>
                 <button class="btn-action btn-refine" onclick="document.getElementById('situation-input').focus()">↺ Try Another</button>
@@ -1046,6 +1068,55 @@ async function publishQuestion(q) {
     }
 }
 
+// ==================== DELETE QUESTION ====================
+async function deleteQuestion(questionId, event) {
+    event.stopPropagation(); // Prevent card click
+    
+    if (!currentUser) {
+        alert('Please login to delete questions');
+        return;
+    }
+    
+    const confirm = window.confirm('Are you sure you want to delete this question? This action cannot be undone.');
+    if (!confirm) return;
+    
+    try {
+        // Check if user is the owner
+        const { data: question, error: fetchError } = await sb
+            .from('questions')
+            .select('created_by')
+            .eq('id', questionId)
+            .single();
+        
+        if (fetchError) throw fetchError;
+        
+        if (question.created_by !== currentUser.id) {
+            alert('You can only delete your own questions!');
+            return;
+        }
+        
+        // Delete the question
+        const { error } = await sb.from('questions').delete().eq('id', questionId);
+        
+        if (error) throw error;
+        
+        // Update user's question count
+        const profile = await getProfile(currentUser.id);
+        await sb.from('profiles').update({ 
+            questions_count: Math.max(0, (profile?.questions_count || 0) - 1)
+        }).eq('id', currentUser.id);
+        
+        alert('Question deleted successfully!');
+        loadQuestions(); // Refresh the list
+        loadStats();
+        loadLeaderboard();
+        
+    } catch (err) {
+        console.error('Delete error:', err);
+        alert('Error deleting question: ' + err.message);
+    }
+}
+
 // ==================== LOAD QUESTIONS ====================
 async function loadQuestions() {
     const container = document.getElementById('questions-container');
@@ -1054,9 +1125,9 @@ async function loadQuestions() {
     try {
         const { data: questions, error } = await sb
             .from('questions')
-            .select('*, profiles!created_by(username)')
+            .select('*, profiles!created_by(id, username)')
             .order('created_at', { ascending: false })
-            .limit(12);
+            .limit(20);
         
         if (error) throw error;
         
@@ -1065,19 +1136,24 @@ async function loadQuestions() {
             return;
         }
         
-        container.innerHTML = questions.map(q => `
-            <div class="card card-hover" style="cursor:pointer;" onclick="viewQuestion(${q.id})">
+        container.innerHTML = questions.map(q => {
+            const isOwner = currentUser && q.profiles?.id === currentUser.id;
+            return `
+            <div class="card card-hover" style="cursor:pointer;position:relative;" onclick="viewQuestion(${q.id})">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                     <span class="chip ${q.difficulty === 'hard' ? 'chip-rose' : (q.difficulty === 'medium' ? 'chip-yellow' : 'chip-mint')}">${q.difficulty}</span>
-                    <span style="font-size:.65rem;color:var(--t3);">by ${q.profiles?.username || 'Anonymous'}</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:.65rem;color:var(--t3);">by ${q.profiles?.username || 'Anonymous'}</span>
+                        ${isOwner ? `<button onclick="deleteQuestion(${q.id}, event)" style="background:rgba(251,113,133,0.2);border:none;color:var(--rose);cursor:pointer;padding:4px 8px;border-radius:6px;font-size:.65rem;font-weight:600;">🗑 Delete</button>` : ''}
+                    </div>
                 </div>
                 <div style="font-weight:600;margin-bottom:8px;font-size:.9rem;">${q.title}</div>
-                <p style="font-size:.75rem;color:var(--t2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${q.problem.substring(0, 120)}...</p>
+                <p style="font-size:.75rem;color:var(--t2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${(q.problem || '').substring(0, 120)}...</p>
                 <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
                     ${(q.tags || []).slice(0, 2).map(t => `<span style="font-size:.6rem;padding:2px 6px;background:var(--card2);border-radius:4px;">${t}</span>`).join('')}
                 </div>
             </div>
-        `).join('');
+        `}).join('');
     } catch (err) {
         console.error('Load questions error:', err);
         container.innerHTML = `<div class="empty"><div class="empty-ico">⚠️</div><div class="empty-t">Error loading questions</div></div>`;
@@ -1101,12 +1177,27 @@ async function loadStats() {
         const pEl = document.getElementById('st-p');
         const bEl = document.getElementById('st-b');
         
-        if (qEl) qEl.textContent = qCount.count || 0;
-        if (pEl) pEl.textContent = pCount.count || 0;
-        if (bEl) bEl.textContent = bCount.count || 0;
+        if (qEl) animateNumber(qEl, qCount.count || 0);
+        if (pEl) animateNumber(pEl, pCount.count || 0);
+        if (bEl) animateNumber(bEl, bCount.count || 0);
     } catch (err) {
         console.error('Stats error:', err);
     }
+}
+
+function animateNumber(element, target) {
+    if (!element) return;
+    let current = 0;
+    const increment = target / 30;
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            element.textContent = target;
+            clearInterval(timer);
+        } else {
+            element.textContent = Math.floor(current);
+        }
+    }, 20);
 }
 
 // ==================== BATTLES ====================
@@ -1200,7 +1291,7 @@ async function findMatch() {
                     started_at: new Date().toISOString()
                 });
                 
-                area.innerHTML = `<div style="color:var(--mint);">✓ Matched! Battle starting...</div>`;
+                area.innerHTML = `<div style="color:var(--mint);text-align:center;">✓ Matched! Battle starting...</div>`;
                 setTimeout(() => {
                     area.innerHTML = `<button class="btn-match" onclick="findMatch()">⚔ Find Opponent</button>`;
                     loadBattles();
@@ -1214,7 +1305,7 @@ async function findMatch() {
             });
             
             area.innerHTML = `<div class="searching-anim"><div class="search-dot"></div><div class="search-dot"></div><div class="search-dot"></div><span>In queue...</span></div>
-                             <button style="margin-top:14px;width:100%;padding:9px;background:var(--card2);border-radius:8px;cursor:pointer;" onclick="leaveQueue()">Leave Queue</button>`;
+                             <button style="margin-top:14px;width:100%;padding:9px;background:var(--card2);border:1px solid var(--border2);color:var(--t2);border-radius:8px;cursor:pointer;" onclick="leaveQueue()">Leave Queue</button>`;
         }
     } catch (err) {
         console.error('Match error:', err);
@@ -1247,12 +1338,12 @@ async function loadLeaderboard() {
         if (creatorsEl) {
             const data = (creators.data || []).filter(p => p.questions_count > 0);
             if (data.length === 0) {
-                creatorsEl.innerHTML = `<div class="empty"><div class="empty-ico">📭</div><div class="empty-t">No questions yet</div></div>`;
+                creatorsEl.innerHTML = `<div class="empty"><div class="empty-ico">📭</div><div class="empty-t">No questions yet</div><div class="empty-d">Generate and publish a question to appear here!</div></div>`;
             } else {
                 creatorsEl.innerHTML = data.map((p, i) => `
                     <div class="lb-row">
                         <div class="lb-rk ${i === 0 ? 'g' : i === 1 ? 's' : i === 2 ? 'b' : ''}">${String(i + 1).padStart(2, '0')}</div>
-                        <div class="lb-un">${p.username}</div>
+                        <div class="lb-un">${p.username || 'Anonymous'}</div>
                         <div class="lb-sc">${p.questions_count} Q</div>
                     </div>
                 `).join('');
@@ -1262,12 +1353,12 @@ async function loadLeaderboard() {
         if (championsEl) {
             const data = (champions.data || []).filter(p => p.battles_won > 0);
             if (data.length === 0) {
-                championsEl.innerHTML = `<div class="empty"><div class="empty-ico">🏆</div><div class="empty-t">No battles yet</div></div>`;
+                championsEl.innerHTML = `<div class="empty"><div class="empty-ico">🏆</div><div class="empty-t">No battles yet</div><div class="empty-d">Win a battle to appear on leaderboard!</div></div>`;
             } else {
                 championsEl.innerHTML = data.map((p, i) => `
                     <div class="lb-row">
                         <div class="lb-rk ${i === 0 ? 'g' : i === 1 ? 's' : i === 2 ? 'b' : ''}">${String(i + 1).padStart(2, '0')}</div>
-                        <div class="lb-un">${p.username}</div>
+                        <div class="lb-un">${p.username || 'Anonymous'}</div>
                         <div class="lb-sc">${p.battles_won} W</div>
                     </div>
                 `).join('');
@@ -1426,6 +1517,7 @@ async function init() {
     
     // Auth state handler
     sb.auth.onAuthStateChange(async (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.email);
         if (session?.user) {
             currentUser = session.user;
             closeModal();
@@ -1433,13 +1525,14 @@ async function init() {
             const profile = await getProfile(currentUser.id);
             showNavUser(currentUser);
             renderBadges(profile);
-            loadUserGraphs(currentUser.id);
+            if (profile) loadUserGraphs(currentUser.id);
             loadQuestions();
             loadStats();
             loadLeaderboard();
             loadBattles();
             loadTicker();
         } else {
+            console.log("No user session");
             currentUser = null;
             showNavGuest();
             renderBadges(null);
@@ -1454,13 +1547,14 @@ async function init() {
     
     // Check existing session
     const { data: { session } } = await sb.auth.getSession();
+    console.log("Existing session:", session?.user?.email);
     if (session?.user) {
         currentUser = session.user;
         await upsertProfile(currentUser);
         const profile = await getProfile(currentUser.id);
         showNavUser(currentUser);
         renderBadges(profile);
-        loadUserGraphs(currentUser.id);
+        if (profile) loadUserGraphs(currentUser.id);
     } else {
         showProgressLocked();
         renderBadges(null);
@@ -1478,26 +1572,4 @@ async function init() {
     // Set up realtime subscriptions
     const channel = sb.channel('public-changes');
     channel
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'battles' }, () => {
-            loadBattles();
-            loadTicker();
-            loadStats();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'questions' }, () => {
-            loadQuestions();
-            loadStats();
-            loadLeaderboard();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
-            loadLeaderboard();
-            loadStats();
-            if (currentUser) {
-                getProfile(currentUser.id).then(profile => renderBadges(profile));
-            }
-        })
-        .subscribe();
-}
-
-// Start the app
-document.addEventListener('DOMContentLoaded', init);
-</script>
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'b
