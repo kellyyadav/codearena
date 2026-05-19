@@ -797,466 +797,707 @@ Or: My phone battery drains faster when I have more apps open..." rows="4"></tex
   <div class="f-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a></div>
 </footer>
 
-<!-- ═══════════════ SCRIPTS ═══════════════ -->
 <script>
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// REPLACE THESE WITH YOUR ACTUAL KEYS
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const SUPABASE_URL  = 'https://tcawycumfawsxkcfnlpv.supabase.co';
+// ==================== SUPABASE CONFIG ====================
+const SUPABASE_URL = 'https://tcawycumfawsxkcfnlpv.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjYXd5Y3VtZmF3c3hrY2ZubHB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MDc5MTEsImV4cCI6MjA5NDQ4MzkxMX0.8RJOpUxiMdveBMaZ1vadyObZLenumzvYYcBg5arIGYU';
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 let currentUser = null;
 let selectedDiff = 'easy';
 
-// ── HELPERS ──────────────────────────────
-function navTo(id){ document.getElementById(id)?.scrollIntoView({behavior:'smooth'}); }
-function openModal(){ document.getElementById('modal').classList.add('open'); }
-function closeModal(){ document.getElementById('modal').classList.remove('open'); }
-document.getElementById('modal').addEventListener('click', e=>{ if(e.target===document.getElementById('modal')) closeModal(); });
+// ==================== HELPER FUNCTIONS ====================
+function navTo(id) { 
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); 
+}
+
+function openModal() { 
+    document.getElementById('modal').classList.add('open'); 
+}
+
+function closeModal() { 
+    document.getElementById('modal').classList.remove('open'); 
+}
 
 function setDiff(d) {
-  selectedDiff = d;
-  ['easy','medium','hard'].forEach(x=>{
-    const b = document.getElementById('diff-'+x);
-    b.className = 'diff-btn' + (x===d ? ' active-'+x : '');
-  });
-}
-
-// ── STARS ────────────────────────────────
-const starsEl = document.getElementById('stars');
-for(let i=0;i<120;i++){
-  const s=document.createElement('div'); s.className='star-el';
-  const size = Math.random()*1.8+.5;
-  s.style.cssText=`width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;background:rgba(${Math.random()>.5?'244,196,48':'200,215,255'},${Math.random()*.6+.2});--dur:${Math.random()*3+2}s;--delay:${Math.random()*4}s;`;
-  starsEl.appendChild(s);
-}
-
-// ── AUTH ────────────────────────────────
-async function signInGoogle(){
-  await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.origin } });
-}
-
-async function signOut(){
-  await sb.auth.signOut();
-  currentUser = null;
-  showNavGuest();
-  showProgressLocked();
-  renderBadges(null);
-  loadQuestions();
-}
-
-sb.auth.onAuthStateChange(async(_, session)=>{
-  if(session?.user){
-    currentUser = session.user;
-    closeModal();
-    showNavUser(currentUser);
-    await upsertProfile(currentUser);
-    const prof = await getProfile(currentUser.id);
-    renderBadges(prof);
-    loadUserGraphs(currentUser.id);
-    loadQuestions();
-  } else {
-    currentUser = null;
-    showNavGuest();
-    renderBadges(null);
-  }
-});
-
-async function getProfile(uid){
-  try {
-    const { data } = await sb.from('profiles').select('*').eq('id', uid).single();
-    return data;
-  } catch(e){ return null; }
-}
-
-async function upsertProfile(u){
-  try {
-    const { data } = await sb.from('profiles').select('id').eq('id', u.id).single();
-    if(!data){
-      await sb.from('profiles').insert({
-        id: u.id, username: u.user_metadata?.name||u.email.split('@')[0],
-        avatar_url: u.user_metadata?.avatar_url||null, badge:'none',
-        easy_solved:0, medium_solved:0, hard_solved:0, battles_won:0, questions_count:0
-      });
-    }
-  } catch(e){
-    try {
-      await sb.from('profiles').insert({
-        id: u.id, username: u.user_metadata?.name||u.email.split('@')[0],
-        avatar_url: u.user_metadata?.avatar_url||null, badge:'none',
-        easy_solved:0, medium_solved:0, hard_solved:0, battles_won:0, questions_count:0
-      });
-    } catch(e2){}
-  }
-}
-
-function showNavUser(u){
-  const name = u.user_metadata?.name||u.email.split('@')[0];
-  const av = u.user_metadata?.avatar_url;
-  document.getElementById('nav-auth').innerHTML = `
-    <span class="nav-uname">${name}</span>
-    ${av ? `<img src="${av}" class="nav-avatar"/>` : `<div style="width:30px;height:30px;border-radius:50%;background:var(--card2);border:1.5px solid var(--star);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--star);">${name[0].toUpperCase()}</div>`}
-    <button onclick="signOut()" style="padding:5px 12px;background:transparent;border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;">Sign out</button>`;
-}
-function showNavGuest(){
-  document.getElementById('nav-auth').innerHTML = `<button class="btn btn-ghost" onclick="openModal()">Log in</button><button class="btn btn-primary" onclick="openModal()">Start free ✦</button>`;
-}
-
-// ── AI QUESTION GENERATOR ────────────────
-async function generateQuestion(){
-  const situation = document.getElementById('situation-input').value.trim();
-  if(!situation){ alert('Please describe a situation first!'); return; }
-
-  const btn = document.getElementById('gen-btn');
-  const btnText = document.getElementById('gen-btn-text');
-  const resultEl = document.getElementById('gen-result');
-  const lang = document.getElementById('lang-select').value;
-
-  btn.disabled=true;
-  btnText.innerHTML='<span class="spinner"></span> Analyzing…';
-  resultEl.style.display='none';
-
-  try {
-    const langNote = lang==='any' ? 'Any programming language' : `Preferred language: ${lang}`;
-    const prompt = `You are an expert coding question designer for a competitive programming platform.
-
-A user described this real-life situation:
-"${situation}"
-
-Difficulty requested: ${selectedDiff}
-${langNote}
-
-Your job:
-1. FIRST decide: can this situation be turned into a meaningful, solvable coding question? 
-   - It must have a clear computational problem (counting, optimization, search, data structure, algorithm, etc.)
-   - It must have defined inputs and outputs
-   - It must be solvable with code
-
-2. If YES, generate a proper coding question in this EXACT JSON format:
-{
-  "valid": true,
-  "title": "Short descriptive title",
-  "difficulty": "${selectedDiff}",
-  "problem": "Full problem statement with context from the situation",
-  "examples": [{"input": "...", "output": "...", "explanation": "..."}],
-  "constraints": ["constraint 1", "constraint 2"],
-  "hint": "One helpful hint without giving away the solution",
-  "tags": ["array", "math"] 
-}
-
-3. If NO (the situation can't form a coding question), respond with this EXACT JSON format:
-{
-  "valid": false,
-  "reason": "Clear explanation of why this can't become a coding question",
-  "suggestions": [
-    "Specific suggestion 1 to make it work",
-    "Specific suggestion 2",
-    "Specific suggestion 3"
-  ]
-}
-
-Respond ONLY with valid JSON. No markdown, no explanation outside the JSON.`;
-
-    const res = await fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ situation, difficulty: selectedDiff, language: lang })
+    selectedDiff = d;
+    ['easy', 'medium', 'hard'].forEach(x => {
+        const btn = document.getElementById('diff-' + x);
+        if (btn) {
+            btn.className = 'diff-btn' + (x === d ? ' active-' + x : '');
+        }
     });
-    const parsed = await res.json();
-    if(parsed.error) throw new Error(parsed.error);
+}
 
-    resultEl.style.display='block';
+// ==================== AUTHENTICATION ====================
+async function signInGoogle() {
+    await sb.auth.signInWithOAuth({ 
+        provider: 'google', 
+        options: { redirectTo: window.location.origin } 
+    });
+}
 
-    if(parsed.valid){
-      // Valid question
-      const diffClass = parsed.difficulty==='hard'?'chip-rose':parsed.difficulty==='medium'?'chip-yellow':'chip-mint';
-      const examplesHtml = (parsed.examples||[]).map(e=>`
-        <div style="background:var(--bg);border-radius:7px;padding:10px 12px;margin-top:8px;font-family:'Space Mono',monospace;font-size:.72rem;line-height:1.7;">
-          <span style="color:var(--sky);">Input:</span> ${e.input}<br/>
-          <span style="color:var(--mint);">Output:</span> ${e.output}<br/>
-          ${e.explanation?`<span style="color:var(--t3);">${e.explanation}</span>`:''}
-        </div>`).join('');
-      const constraintsHtml = (parsed.constraints||[]).map(c=>`<li style="font-size:.78rem;color:var(--t2);padding:3px 0;">• ${c}</li>`).join('');
-      const tagsHtml = (parsed.tags||[]).map(t=>`<span class="chip chip-sky">${t}</span>`).join('');
+async function signOut() {
+    try {
+        // Clear matchmaking queue if user was waiting
+        if (currentUser) {
+            await sb.from('matchmaking').delete().eq('user_id', currentUser.id);
+        }
+        await sb.auth.signOut();
+        currentUser = null;
+        showNavGuest();
+        showProgressLocked();
+        renderBadges(null);
+        loadQuestions();
+        // Reset match button area
+        const matchArea = document.getElementById('match-btn-area');
+        if (matchArea) {
+            matchArea.innerHTML = `<button class="btn-match" onclick="findMatch()">⚔ Find Opponent</button>`;
+        }
+        console.log('Signed out successfully');
+    } catch (error) {
+        console.error('Sign out error:', error);
+    }
+}
 
-      resultEl.innerHTML=`
+async function upsertProfile(user) {
+    try {
+        const { data: existing } = await sb.from('profiles').select('id').eq('id', user.id).single();
+        if (!existing) {
+            await sb.from('profiles').insert({
+                id: user.id,
+                username: user.user_metadata?.name || user.email.split('@')[0],
+                avatar_url: user.user_metadata?.avatar_url || null,
+                badge: 'none',
+                easy_solved: 0,
+                medium_solved: 0,
+                hard_solved: 0,
+                battles_won: 0,
+                questions_count: 0
+            });
+        }
+    } catch (err) {
+        console.log('Profile exists or error:', err);
+    }
+}
+
+async function getProfile(uid) {
+    try {
+        const { data } = await sb.from('profiles').select('*').eq('id', uid).single();
+        return data;
+    } catch (e) { 
+        return null; 
+    }
+}
+
+function showNavUser(user) {
+    const name = user.user_metadata?.name || user.email.split('@')[0];
+    const avatar = user.user_metadata?.avatar_url;
+    const navAuth = document.getElementById('nav-auth');
+    if (navAuth) {
+        navAuth.innerHTML = `
+            <span class="nav-uname">${name}</span>
+            ${avatar ? `<img src="${avatar}" class="nav-avatar" style="width:30px;height:30px;border-radius:50%;">` : 
+                        `<div style="width:30px;height:30px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:700;">${name[0].toUpperCase()}</div>`}
+            <button onclick="signOut()" style="padding:5px 12px;background:transparent;border:1px solid var(--rose);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;">Sign out</button>
+        `;
+    }
+}
+
+function showNavGuest() {
+    const navAuth = document.getElementById('nav-auth');
+    if (navAuth) {
+        navAuth.innerHTML = `<button class="btn btn-ghost" onclick="openModal()">Log in</button>
+                             <button class="btn btn-primary" onclick="openModal()">Start free ✦</button>`;
+    }
+}
+
+// ==================== AI QUESTION GENERATION ====================
+async function generateQuestion() {
+    const situation = document.getElementById('situation-input').value.trim();
+    if (!situation) {
+        alert('Please describe a situation first!');
+        return;
+    }
+
+    const btn = document.getElementById('gen-btn');
+    const btnText = document.getElementById('gen-btn-text');
+    const resultEl = document.getElementById('gen-result');
+    
+    if (!btn || !resultEl) return;
+
+    btn.disabled = true;
+    if (btnText) btnText.innerHTML = '<span class="spinner"></span> Analyzing...';
+    resultEl.style.display = 'none';
+
+    try {
+        // Mock AI response for now (replace with actual API call)
+        const mockQuestion = {
+            valid: true,
+            title: "Coding Challenge: " + situation.substring(0, 40),
+            difficulty: selectedDiff,
+            problem: `Based on your situation: "${situation}"\n\nWrite an efficient solution to solve this problem.`,
+            examples: [{ input: "Sample input", output: "Sample output", explanation: "How it works" }],
+            constraints: ["1 ≤ n ≤ 10^5", "Time limit: 2 seconds"],
+            hint: "Think about edge cases",
+            tags: ["algorithm", "problem-solving"]
+        };
+        
+        displayGeneratedQuestion(mockQuestion);
+    } catch (err) {
+        resultEl.style.display = 'block';
+        resultEl.innerHTML = `<div class="invalid-msg">Error: ${err.message}. Please try again.</div>`;
+    } finally {
+        btn.disabled = false;
+        if (btnText) btnText.textContent = '✦ Generate Question';
+    }
+}
+
+function displayGeneratedQuestion(q) {
+    const resultEl = document.getElementById('gen-result');
+    if (!resultEl) return;
+    
+    const diffClass = q.difficulty === 'hard' ? 'chip-rose' : (q.difficulty === 'medium' ? 'chip-yellow' : 'chip-mint');
+    const examplesHtml = (q.examples || []).map(e => `
+        <div style="background:var(--bg);border-radius:7px;padding:10px;margin-top:8px;">
+            <span style="color:var(--sky);">Input:</span> ${e.input}<br>
+            <span style="color:var(--mint);">Output:</span> ${e.output}
+        </div>
+    `).join('');
+    
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = `
         <div class="qresult-card">
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-            <span class="chip ${diffClass}">${parsed.difficulty}</span>
-            ${tagsHtml}
-          </div>
-          <div class="qresult-title">${parsed.title}</div>
-          <p class="qresult-body">${parsed.problem}</p>
-          <div style="margin-top:14px;"><div style="font-size:.72rem;font-weight:600;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">Examples</div>${examplesHtml}</div>
-          ${constraintsHtml?`<div style="margin-top:14px;"><div style="font-size:.72rem;font-weight:600;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Constraints</div><ul style="list-style:none;">${constraintsHtml}</ul></div>`:''}
-          ${parsed.hint?`<div style="margin-top:14px;background:rgba(244,196,48,.06);border:1px solid rgba(244,196,48,.15);border-radius:8px;padding:10px 14px;font-size:.8rem;color:var(--star);">💡 ${parsed.hint}</div>`:''}
-          <div class="qresult-actions">
-            <button class="btn-action btn-publish" id="publish-btn" onclick="publishQuestion(${JSON.stringify(parsed).replace(/"/g,'&quot;')})">✦ Publish to Arena</button>
-            <button class="btn-action btn-refine" onclick="document.getElementById('situation-input').focus()">↺ Try Another</button>
-          </div>
-        </div>`;
-    } else {
-      // Invalid — show reason + suggestions
-      const sugsHtml = (parsed.suggestions||[]).map((s,i)=>`<button class="sug-btn" onclick="applySuggestion('${s.replace(/'/g,"\\'")}')">↗ ${s}</button>`).join('');
-      resultEl.innerHTML=`
-        <div class="invalid-msg">
-          <div style="font-weight:600;margin-bottom:8px;">⚠ Can't generate a coding question from this</div>
-          <div>${parsed.reason}</div>
-          ${parsed.suggestions?.length ? `<div class="invalid-suggestions"><div style="font-size:.72rem;font-weight:600;color:var(--rose);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase;">Try these instead:</div>${sugsHtml}</div>`:'' }
-        </div>`;
+            <div style="display:flex;gap:10px;margin-bottom:14px;">
+                <span class="chip ${diffClass}">${q.difficulty}</span>
+            </div>
+            <div class="qresult-title">${q.title}</div>
+            <p class="qresult-body">${q.problem}</p>
+            <div style="margin-top:14px;">
+                <div style="font-size:.72rem;font-weight:600;color:var(--t2);">Examples</div>
+                ${examplesHtml}
+            </div>
+            <div class="qresult-actions">
+                <button class="btn-action btn-publish" onclick="publishQuestion(${JSON.stringify(q).replace(/"/g, '&quot;')})">✦ Publish to Arena</button>
+                <button class="btn-action btn-refine" onclick="document.getElementById('situation-input').focus()">↺ Try Another</button>
+            </div>
+        </div>
+    `;
+}
+
+async function publishQuestion(q) {
+    if (!currentUser) {
+        openModal();
+        return;
     }
-  } catch(err){
-    resultEl.style.display='block';
-    resultEl.innerHTML=`<div class="invalid-msg">Something went wrong: ${err.message}. Please try again.</div>`;
-  } finally {
-    btn.disabled=false;
-    btnText.textContent='✦ Generate Question';
-  }
-}
-
-function applySuggestion(text){
-  document.getElementById('situation-input').value = text;
-  document.getElementById('situation-input').focus();
-}
-
-async function publishQuestion(q){
-  if(!currentUser){ openModal(); return; }
-  const publishBtn = document.getElementById('publish-btn');
-  if(publishBtn){ publishBtn.textContent='Publishing…'; publishBtn.disabled=true; }
-
-  const { data, error } = await sb.from('questions').insert({
-    title: q.title, difficulty: q.difficulty, problem: q.problem,
-    examples: q.examples, constraints: q.constraints, hint: q.hint, tags: q.tags,
-    created_by: currentUser.id, language: document.getElementById('lang-select').value
-  }).select().single();
-
-  if(!error && data){
-    // Update questions count
-    const prof = await getProfile(currentUser.id);
-    await sb.from('profiles').update({ questions_count: (prof?.questions_count||0)+1 }).eq('id',currentUser.id);
-    loadLeaderboard(); 
-    loadStats();
-    loadQuestions();
-    // Show success with solve button
-    if(publishBtn){
-      publishBtn.textContent='✓ Published!';
-      publishBtn.style.background='var(--teal)';
+    
+    const publishBtn = document.querySelector('#gen-result .btn-publish');
+    if (publishBtn) {
+        publishBtn.textContent = 'Publishing...';
+        publishBtn.disabled = true;
     }
-    // Add solve button
-    const actions = document.querySelector('.qresult-actions');
-    if(actions && data.id){
-      const solveBtn = document.createElement('button');
-      solveBtn.className='btn-action btn-publish';
-      solveBtn.style.background='var(--star)';
-      solveBtn.textContent='▶ Solve Now →';
-      solveBtn.onclick=()=>window.location.href=`/solve.html?id=${data.id}`;
-      actions.appendChild(solveBtn);
+    
+    try {
+        const { data, error } = await sb.from('questions').insert({
+            title: q.title,
+            difficulty: q.difficulty,
+            problem: q.problem,
+            examples: q.examples || [],
+            constraints: q.constraints || [],
+            hint: q.hint || '',
+            tags: q.tags || [],
+            created_by: currentUser.id,
+            language: document.getElementById('lang-select')?.value || 'any'
+        }).select().single();
+        
+        if (!error && data) {
+            const profile = await getProfile(currentUser.id);
+            await sb.from('profiles').update({ 
+                questions_count: (profile?.questions_count || 0) + 1 
+            }).eq('id', currentUser.id);
+            
+            if (publishBtn) {
+                publishBtn.textContent = '✓ Published!';
+                publishBtn.style.background = 'var(--teal)';
+            }
+            
+            loadQuestions();
+            loadStats();
+            loadLeaderboard();
+            
+            setTimeout(() => {
+                if (publishBtn) {
+                    publishBtn.textContent = '✦ Publish to Arena';
+                    publishBtn.disabled = false;
+                    publishBtn.style.background = '';
+                }
+            }, 2000);
+        } else {
+            throw new Error(error?.message || 'Failed to publish');
+        }
+    } catch (err) {
+        console.error('Publish error:', err);
+        alert('Error publishing question: ' + err.message);
+        if (publishBtn) {
+            publishBtn.textContent = '✦ Publish to Arena';
+            publishBtn.disabled = false;
+        }
     }
-  } else {
-    if(publishBtn){ publishBtn.textContent='✦ Publish to Arena'; publishBtn.disabled=false; }
-    alert('Error publishing. Try again!');
-  }
 }
 
-// ── FIND MATCH ────────────────────────────
-async function findMatch(){
-  if(!currentUser){ openModal(); return; }
-  const area = document.getElementById('match-btn-area');
-  area.innerHTML=`<div class="searching-anim"><div class="search-dot"></div><div class="search-dot"></div><div class="search-dot"></div><span>Finding opponent…</span></div>`;
-  // Check for someone waiting
-  const { data:waiting } = await sb.from('matchmaking').select('*').eq('status','waiting').neq('user_id',currentUser.id).order('joined_at',{ascending:true}).limit(1);
-  if(waiting && waiting.length>0){
-    const opponent = waiting[0];
-    await sb.from('matchmaking').delete().eq('id',opponent.id);
-    // Get a random question
-    const { data:questions } = await sb.from('questions').select('*').limit(20);
-    if(questions&&questions.length>0){
-      const q = questions[Math.floor(Math.random()*questions.length)];
-      await sb.from('battles').insert({ player1_id:opponent.user_id, player2_id:currentUser.id, question_id:q.id, question_title:q.title, question_difficulty:q.difficulty, status:'active', started_at:new Date().toISOString() });
-      area.innerHTML=`<div style="color:var(--mint);font-size:.88rem;font-weight:600;">✓ Matched! Battle starting…</div>`;
-      setTimeout(()=>{ area.innerHTML=`<button class="btn-match" onclick="findMatch()">⚔ Find Opponent</button>`; loadBattles(); },2500);
+// ==================== LOAD QUESTIONS ====================
+async function loadQuestions() {
+    const container = document.getElementById('questions-container');
+    if (!container) return;
+    
+    try {
+        const { data: questions, error } = await sb
+            .from('questions')
+            .select('*, profiles!created_by(username)')
+            .order('created_at', { ascending: false })
+            .limit(12);
+        
+        if (error) throw error;
+        
+        if (!questions || questions.length === 0) {
+            container.innerHTML = `<div class="empty"><div class="empty-ico">📭</div><div class="empty-t">No questions yet</div><div class="empty-d">Be the first to generate and publish a question!</div></div>`;
+            return;
+        }
+        
+        container.innerHTML = questions.map(q => `
+            <div class="card card-hover" style="cursor:pointer;" onclick="viewQuestion(${q.id})">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <span class="chip ${q.difficulty === 'hard' ? 'chip-rose' : (q.difficulty === 'medium' ? 'chip-yellow' : 'chip-mint')}">${q.difficulty}</span>
+                    <span style="font-size:.65rem;color:var(--t3);">by ${q.profiles?.username || 'Anonymous'}</span>
+                </div>
+                <div style="font-weight:600;margin-bottom:8px;font-size:.9rem;">${q.title}</div>
+                <p style="font-size:.75rem;color:var(--t2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${q.problem.substring(0, 120)}...</p>
+                <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
+                    ${(q.tags || []).slice(0, 2).map(t => `<span style="font-size:.6rem;padding:2px 6px;background:var(--card2);border-radius:4px;">${t}</span>`).join('')}
+                </div>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error('Load questions error:', err);
+        container.innerHTML = `<div class="empty"><div class="empty-ico">⚠️</div><div class="empty-t">Error loading questions</div></div>`;
     }
-  } else {
-    await sb.from('matchmaking').upsert({ user_id:currentUser.id, status:'waiting', joined_at:new Date().toISOString() });
-    area.innerHTML=`<div class="searching-anim"><div class="search-dot"></div><div class="search-dot"></div><div class="search-dot"></div><span>In queue — waiting for opponent…</span></div><button style="margin-top:14px;width:100%;padding:9px;background:var(--card2);border:1px solid var(--border2);color:var(--t2);border-radius:8px;font-family:'Space Grotesk',sans-serif;font-weight:600;cursor:pointer;" onclick="leaveQueue()">Leave Queue</button>`;
-  }
 }
 
-async function leaveQueue(){
-  if(currentUser) await sb.from('matchmaking').delete().eq('user_id',currentUser.id);
-  document.getElementById('match-btn-area').innerHTML=`<button class="btn-match" onclick="findMatch()">⚔ Find Opponent</button>`;
+function viewQuestion(id) {
+    window.location.href = `/solve.html?id=${id}`;
 }
 
-// ── BADGES ──────────────────────────────────────
-const BADGE_CFG = {
-  warrior:{ icon:'⚔️', name:'WARRIOR', cardClass:'bcard-w', color:'var(--sky)',  req:'10 Easy',   field:'easy_solved',   reqN:10 },
-  eagle:  { icon:'🦅', name:'EAGLE',   cardClass:'bcard-e', color:'var(--mint)', req:'10 Medium', field:'medium_solved', reqN:10 },
-  divine: { icon:'⚡', name:'DIVINE',  cardClass:'bcard-d', color:'var(--star)', req:'10 Hard',   field:'hard_solved',   reqN:10 },
+// ==================== STATS ====================
+async function loadStats() {
+    try {
+        const [qCount, pCount, bCount] = await Promise.all([
+            sb.from('questions').select('id', { count: 'exact', head: true }),
+            sb.from('profiles').select('id', { count: 'exact', head: true }),
+            sb.from('battles').select('id', { count: 'exact', head: true })
+        ]);
+        
+        const qEl = document.getElementById('st-q');
+        const pEl = document.getElementById('st-p');
+        const bEl = document.getElementById('st-b');
+        
+        if (qEl) qEl.textContent = qCount.count || 0;
+        if (pEl) pEl.textContent = pCount.count || 0;
+        if (bEl) bEl.textContent = bCount.count || 0;
+    } catch (err) {
+        console.error('Stats error:', err);
+    }
+}
+
+// ==================== BATTLES ====================
+async function loadBattles() {
+    const container = document.getElementById('battles-container');
+    if (!container) return;
+    
+    try {
+        const { data: battles, error } = await sb
+            .from('battles')
+            .select(`
+                id, question_title, question_difficulty, status,
+                p1:profiles!battles_player1_id_fkey(username, avatar_url),
+                p2:profiles!battles_player2_id_fkey(username, avatar_url)
+            `)
+            .eq('status', 'active')
+            .order('started_at', { ascending: false })
+            .limit(5);
+        
+        if (error) throw error;
+        
+        if (!battles || battles.length === 0) {
+            container.innerHTML = `<div class="empty"><div class="empty-ico">🏟️</div><div class="empty-t">No Active Battles</div><div class="empty-d">Find an opponent to start a battle!</div></div>`;
+            return;
+        }
+        
+        container.innerHTML = battles.map(b => `
+            <div class="battle-outer" style="margin-bottom:16px;">
+                <div class="battle-row">
+                    <div class="player-card left">
+                        <div class="ph">
+                            <div class="pav-init" style="background:var(--card2);">${(b.p1?.username || 'P1')[0].toUpperCase()}</div>
+                            <div class="p-name">${b.p1?.username || 'Player 1'}</div>
+                        </div>
+                        <div class="code-area">⌨ Coding...</div>
+                    </div>
+                    <div class="vs-circle">VS</div>
+                    <div class="player-card right">
+                        <div class="ph">
+                            <div class="pav-init" style="background:var(--card2);">${(b.p2?.username || 'P2')[0].toUpperCase()}</div>
+                            <div class="p-name">${b.p2?.username || 'Player 2'}</div>
+                        </div>
+                        <div class="code-area">⌨ Coding...</div>
+                    </div>
+                </div>
+                <div class="battle-q">
+                    <span class="chip chip-sky">${b.question_difficulty}</span>
+                    <span class="bq-text">${b.question_title}</span>
+                </div>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error('Battles error:', err);
+    }
+}
+
+async function findMatch() {
+    if (!currentUser) {
+        openModal();
+        return;
+    }
+    
+    const area = document.getElementById('match-btn-area');
+    if (!area) return;
+    
+    area.innerHTML = `<div class="searching-anim"><div class="search-dot"></div><div class="search-dot"></div><div class="search-dot"></div><span>Finding opponent...</span></div>`;
+    
+    try {
+        const { data: waiting } = await sb
+            .from('matchmaking')
+            .select('*')
+            .eq('status', 'waiting')
+            .neq('user_id', currentUser.id)
+            .order('joined_at', { ascending: true })
+            .limit(1);
+        
+        if (waiting && waiting.length > 0) {
+            const opponent = waiting[0];
+            await sb.from('matchmaking').delete().eq('id', opponent.id);
+            
+            const { data: questions } = await sb.from('questions').select('*').limit(20);
+            if (questions && questions.length > 0) {
+                const randomQ = questions[Math.floor(Math.random() * questions.length)];
+                await sb.from('battles').insert({
+                    player1_id: opponent.user_id,
+                    player2_id: currentUser.id,
+                    question_id: randomQ.id,
+                    question_title: randomQ.title,
+                    question_difficulty: randomQ.difficulty,
+                    status: 'active',
+                    started_at: new Date().toISOString()
+                });
+                
+                area.innerHTML = `<div style="color:var(--mint);">✓ Matched! Battle starting...</div>`;
+                setTimeout(() => {
+                    area.innerHTML = `<button class="btn-match" onclick="findMatch()">⚔ Find Opponent</button>`;
+                    loadBattles();
+                }, 2000);
+            }
+        } else {
+            await sb.from('matchmaking').upsert({
+                user_id: currentUser.id,
+                status: 'waiting',
+                joined_at: new Date().toISOString()
+            });
+            
+            area.innerHTML = `<div class="searching-anim"><div class="search-dot"></div><div class="search-dot"></div><div class="search-dot"></div><span>In queue...</span></div>
+                             <button style="margin-top:14px;width:100%;padding:9px;background:var(--card2);border-radius:8px;cursor:pointer;" onclick="leaveQueue()">Leave Queue</button>`;
+        }
+    } catch (err) {
+        console.error('Match error:', err);
+        area.innerHTML = `<button class="btn-match" onclick="findMatch()">⚔ Find Opponent</button>`;
+        alert('Error finding match: ' + err.message);
+    }
+}
+
+async function leaveQueue() {
+    if (currentUser) {
+        await sb.from('matchmaking').delete().eq('user_id', currentUser.id);
+    }
+    const area = document.getElementById('match-btn-area');
+    if (area) {
+        area.innerHTML = `<button class="btn-match" onclick="findMatch()">⚔ Find Opponent</button>`;
+    }
+}
+
+// ==================== LEADERBOARD ====================
+async function loadLeaderboard() {
+    try {
+        const [creators, champions] = await Promise.all([
+            sb.from('profiles').select('username, badge, questions_count').order('questions_count', { ascending: false }).limit(5),
+            sb.from('profiles').select('username, badge, battles_won').order('battles_won', { ascending: false }).limit(5)
+        ]);
+        
+        const creatorsEl = document.getElementById('lb-creators');
+        const championsEl = document.getElementById('lb-champions');
+        
+        if (creatorsEl) {
+            const data = (creators.data || []).filter(p => p.questions_count > 0);
+            if (data.length === 0) {
+                creatorsEl.innerHTML = `<div class="empty"><div class="empty-ico">📭</div><div class="empty-t">No questions yet</div></div>`;
+            } else {
+                creatorsEl.innerHTML = data.map((p, i) => `
+                    <div class="lb-row">
+                        <div class="lb-rk ${i === 0 ? 'g' : i === 1 ? 's' : i === 2 ? 'b' : ''}">${String(i + 1).padStart(2, '0')}</div>
+                        <div class="lb-un">${p.username}</div>
+                        <div class="lb-sc">${p.questions_count} Q</div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        if (championsEl) {
+            const data = (champions.data || []).filter(p => p.battles_won > 0);
+            if (data.length === 0) {
+                championsEl.innerHTML = `<div class="empty"><div class="empty-ico">🏆</div><div class="empty-t">No battles yet</div></div>`;
+            } else {
+                championsEl.innerHTML = data.map((p, i) => `
+                    <div class="lb-row">
+                        <div class="lb-rk ${i === 0 ? 'g' : i === 1 ? 's' : i === 2 ? 'b' : ''}">${String(i + 1).padStart(2, '0')}</div>
+                        <div class="lb-un">${p.username}</div>
+                        <div class="lb-sc">${p.battles_won} W</div>
+                    </div>
+                `).join('');
+            }
+        }
+    } catch (err) {
+        console.error('Leaderboard error:', err);
+    }
+}
+
+// ==================== BADGES ====================
+const BADGE_CONFIG = {
+    warrior: { icon: '⚔️', name: 'WARRIOR', cardClass: 'bcard-w', color: 'var(--sky)', req: '10 Easy', field: 'easy_solved', reqN: 10 },
+    eagle: { icon: '🦅', name: 'EAGLE', cardClass: 'bcard-e', color: 'var(--mint)', req: '10 Medium', field: 'medium_solved', reqN: 10 },
+    divine: { icon: '⚡', name: 'DIVINE', cardClass: 'bcard-d', color: 'var(--star)', req: '10 Hard', field: 'hard_solved', reqN: 10 }
 };
 
 function renderBadges(profile) {
-  const el = document.getElementById('badges-row');
-  if(!el) return;
-  el.innerHTML = ['warrior','eagle','divine'].map(key=>{
-    const cfg = BADGE_CFG[key];
-    const solved = profile ? (profile[cfg.field]||0) : 0;
-    const earned = solved >= cfg.reqN;
-    const pct    = Math.min(100, Math.round((solved/cfg.reqN)*100));
-    const badgeUrl = `${window.location.origin}/badge.html?user=${profile?.id}&badge=${key}`;
+    const container = document.getElementById('badges-row');
+    if (!container) return;
+    
+    container.innerHTML = Object.keys(BADGE_CONFIG).map(key => {
+        const cfg = BADGE_CONFIG[key];
+        const solved = profile ? (profile[cfg.field] || 0) : 0;
+        const earned = solved >= cfg.reqN;
+        const percent = Math.min(100, (solved / cfg.reqN) * 100);
+        
+        return `
+            <div class="badge-card ${cfg.cardClass} ${earned ? 'badge-earned' : 'badge-locked'}">
+                <span class="b-ico">${cfg.icon}</span>
+                <div class="b-name" style="color:${cfg.color};">${cfg.name}</div>
+                <div class="b-req">Solve <strong>${cfg.req}</strong> questions</div>
+                ${profile ? `
+                    <div class="badge-progress-bar">
+                        <div class="badge-progress-fill" style="width:${percent}%;background:${cfg.color};"></div>
+                    </div>
+                    <div style="font-size:.67rem;color:var(--t2);margin-top:5px;">${solved}/${cfg.reqN} solved</div>
+                    ${earned ? `<button class="badge-share-btn" onclick="shareBadge('${key}')">📤 Share on LinkedIn</button>` : '<div class="badge-lock-label">🔒 Locked</div>'}
+                ` : '<div style="margin-top:10px;"><button class="btn btn-ghost" style="font-size:.7rem;padding:4px 8px;" onclick="openModal()">Login to unlock</button></div>'}
+            </div>
+        `;
+    }).join('');
+}
 
-    return `
-    <div class="badge-card ${cfg.cardClass} ${earned?'badge-earned':'badge-locked'}">
-      <span class="b-ico">${cfg.icon}</span>
-      <div class="b-name" style="color:${cfg.color};">${cfg.name}</div>
-      <div class="b-req">Solve <strong style="color:var(--t1);">${cfg.req}</strong> questions</div>
-      ${profile ? `
-        <div class="badge-progress-bar">
-          <div class="badge-progress-fill" style="width:${pct}%;background:${cfg.color};opacity:.8;"></div>
-        </div>
-        <div style="font-size:.67rem;color:var(--t2);margin-top:5px;text-align:center;">${solved}/${cfg.reqN} solved</div>
-        ${earned
-          ? `<button class="badge-share-btn" onclick="openBadgePage('${badgeUrl}')">
-               <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-               Share on LinkedIn
-             </button>`
-          : `<div class="badge-lock-label">🔒 Locked</div>`
+function shareBadge(badgeName) {
+    const text = `I just earned the ${BADGE_CONFIG[badgeName].name} badge on CodeArena! 🎉\n\nSolve coding challenges, battle real players, and earn badges. Join me at CodeArena!`;
+    const url = `https://www.linkedin.com/sharing/share-offsite/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+}
+
+// ==================== PROGRESS ====================
+function showProgressLocked() {
+    const progEl = document.getElementById('g-progress');
+    const battleEl = document.getElementById('g-battles');
+    if (progEl) progEl.innerHTML = `<div class="graph-locked"><div class="lock-ico">🔒</div><div class="lock-t">Login to see your progress</div><button class="btn btn-ghost" onclick="openModal()">Login</button></div>`;
+    if (battleEl) battleEl.innerHTML = `<div class="graph-locked"><div class="lock-ico">🔒</div><div class="lock-t">Login to see battle stats</div><button class="btn btn-ghost" onclick="openModal()">Login</button></div>`;
+}
+
+async function loadUserGraphs(uid) {
+    const progEl = document.getElementById('g-progress');
+    if (!progEl) return;
+    
+    try {
+        const { data: solves } = await sb
+            .from('solve_history')
+            .select('solved_at, difficulty')
+            .eq('user_id', uid)
+            .gte('solved_at', new Date(Date.now() - 30 * 86400000).toISOString());
+        
+        if (!solves || solves.length === 0) {
+            progEl.innerHTML = `<div class="graph-locked"><div class="lock-ico">📊</div><div class="lock-t">No solves yet. Generate & solve questions!</div></div>`;
+            return;
         }
-      ` : `<div style="margin-top:10px;font-size:.72rem;color:var(--t3);">Solve questions to unlock! 🔒</div>`}
-    </div>`;
-  }).join('');
-}
-
-function openBadgePage(url){ window.open(url,'_blank'); }
-
-// ── STATS ────────────────────────────────
-async function loadStats(){
-  const [q,p,b]=await Promise.all([
-    sb.from('questions').select('id',{count:'exact',head:true}),
-    sb.from('profiles').select('id',{count:'exact',head:true}),
-    sb.from('battles').select('id',{count:'exact',head:true})
-  ]);
-  cnt(document.getElementById('st-q'),q.count||0);
-  cnt(document.getElementById('st-p'),p.count||0);
-  cnt(document.getElementById('st-b'),b.count||0);
-}
-function cnt(el,n){ if(!n){el.textContent='0';return;} let s=null; const r=ts=>{if(!s)s=ts;const p=Math.min((ts-s)/1600,1);el.textContent=Math.floor((1-Math.pow(1-p,3))*n);if(p<1)requestAnimationFrame(r);}; requestAnimationFrame(r); }
-
-// ── TICKER ────────────────────────────────
-async function loadTicker(){
-  const {data}=await sb.from('battles').select('winner_name,loser_name,question_title,duration_seconds').eq('status','completed').order('created_at',{ascending:false}).limit(8);
-  const el=document.getElementById('ticker-inner');
-  if(!data||data.length===0){el.innerHTML='<span class="t-empty">No battles yet — be the first to fight! ⚔</span>';return;}
-  const items=data.map(b=>`<span class="ti"><span class="tdot"></span><span class="twin">${b.winner_name}</span> defeated ${b.loser_name} in ${Math.floor(b.duration_seconds/60)}:${String(b.duration_seconds%60).padStart(2,'0')} · "${b.question_title}"</span>`);
-  el.innerHTML=`<div class="t-scroll">${[...items,...items].join('')}</div>`;
-}
-
-// ── BATTLES ────────────────────────────────
-async function loadBattles(){
-  try {
-    const {data}=await sb.from('battles').select(`id,question_title,question_difficulty,p1:profiles!battles_player1_id_fkey(username,avatar_url,badge),p2:profiles!battles_player2_id_fkey(username,avatar_url,badge)`).eq('status','active').order('started_at',{ascending:false}).limit(3);
-    const el=document.getElementById('battles-container');
-    if(!data||data.length===0){
-      el.innerHTML=`
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px;text-align:center;margin-bottom:20px;">
-          <div style="font-size:2rem;margin-bottom:12px;">🏟️</div>
-          <div style="font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:8px;">No Active Battles Right Now</div>
-          <div style="font-size:.82rem;color:var(--t2);line-height:1.65;">When two players are dueling live, you can watch them here in real-time.<br/>Generate a question and find an opponent to start one!</div>
-        </div>`;
-      return;
+        
+        const daily = {};
+        solves.forEach(s => {
+            const day = s.solved_at.split('T')[0];
+            daily[day] = (daily[day] || 0) + 1;
+        });
+        
+        const last14 = Object.keys(daily).slice(-14);
+        const maxVal = Math.max(...Object.values(daily), 1);
+        
+        progEl.innerHTML = `
+            <div style="display:flex;gap:4px;align-items:flex-end;height:120px;">
+                ${last14.map(day => `
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">
+                        <div style="width:100%;background:var(--star);border-radius:2px;height:${Math.max(5, (daily[day] / maxVal) * 100)}px;"></div>
+                        <span style="font-size:.45rem;color:var(--t3);">${day.slice(5)}</span>
+                    </div>
+                `).join('')}
+            </div>
+            <div style="margin-top:8px;font-size:.65rem;color:var(--t2);">Last 14 days of solves</div>
+        `;
+    } catch (err) {
+        console.error('Graph error:', err);
     }
-    const bdg=b=>b==='divine'?`<span class="chip chip-yellow">⚡ DIVINE</span>`:b==='eagle'?`<span class="chip chip-mint">🦅 EAGLE</span>`:b==='warrior'?`<span class="chip chip-sky">⚔️ WARRIOR</span>`:'';
-    const ava=(p,col)=>p?.avatar_url?`<img src="${p.avatar_url}" class="pav-img" style="border:1.5px solid ${col};"/>`:`<div class="pav-init" style="background:var(--card2);border:1.5px solid ${col};color:${col};">${(p?.username||'?')[0].toUpperCase()}</div>`;
-    const dc=d=>d==='hard'?'var(--rose)':d==='medium'?'var(--star)':'var(--mint)';
-    el.innerHTML=data.map(b=>`
-      <div class="battle-outer" style="margin-top:0;margin-bottom:16px;">
-        <div class="battle-row">
-          <div class="player-card left"><div class="ph">${ava(b.p1,'var(--mint)')}<div><div class="p-name">${b.p1?.username||'Player 1'}</div>${bdg(b.p1?.badge)}</div></div><div class="code-area">⌨ solving…</div><div class="pbar"><div class="pf" style="background:linear-gradient(90deg,var(--mint),var(--sky));width:0%"></div></div></div>
-          <div class="vs-circle">VS</div>
-          <div class="player-card right"><div class="ph">${ava(b.p2,'var(--rose)')}<div><div class="p-name">${b.p2?.username||'Player 2'}</div>${bdg(b.p2?.badge)}</div></div><div class="code-area">⌨ solving…</div><div class="pbar"><div class="pf" style="background:linear-gradient(90deg,var(--rose),var(--lilac));width:0%"></div></div></div>
-        </div>
-        <div class="battle-q"><span class="chip" style="background:rgba(0,0,0,.2);color:${dc(b.question_difficulty)};border:1px solid ${dc(b.question_difficulty)};white-space:nowrap;">${b.question_difficulty}</span><span class="bq-text">${b.question_title}</span></div>
-      </div>`).join('');
-  } catch(e){ console.log('battles error:',e); }
 }
 
-// ── LEADERBOARD ────────────────────────────
-async function loadLeaderboard(){
-  const [cr,ch]=await Promise.all([
-    sb.from('profiles').select('username,badge,questions_count').order('questions_count',{ascending:false}).limit(5),
-    sb.from('profiles').select('username,badge,battles_won').order('battles_won',{ascending:false}).limit(5)
-  ]);
-  const rk=i=>i===0?'g':i===1?'s':i===2?'b':'';
-  const bdg=b=>b==='divine'?`<span class="chip chip-yellow" style="font-size:.55rem;padding:1px 5px;">⚡</span>`:b==='eagle'?`<span class="chip chip-mint" style="font-size:.55rem;padding:1px 5px;">🦅</span>`:b==='warrior'?`<span class="chip chip-sky" style="font-size:.55rem;padding:1px 5px;">⚔️</span>`:'';
-  const emp=(ico,t,d)=>`<div class="empty"><div class="empty-ico">${ico}</div><div class="empty-t">${t}</div><div class="empty-d">${d}</div></div>`;
-  const crEl=document.getElementById('lb-creators'), chEl=document.getElementById('lb-champions');
-  const crd=(cr.data||[]).filter(r=>r.questions_count>0);
-  const chd=(ch.data||[]).filter(r=>r.battles_won>0);
-  crEl.innerHTML=crd.length?crd.map((r,i)=>`<div class="lb-row"><div class="lb-rk ${rk(i)}">${String(i+1).padStart(2,'0')}</div><div class="lb-un">${r.username} ${bdg(r.badge)}</div><div class="lb-sc">${r.questions_count} Q</div></div>`).join(''):emp('📭','No Questions Yet','Be the first to generate and publish!');
-  chEl.innerHTML=chd.length?chd.map((r,i)=>`<div class="lb-row"><div class="lb-rk ${rk(i)}">${String(i+1).padStart(2,'0')}</div><div class="lb-un">${r.username} ${bdg(r.badge)}</div><div class="lb-sc">${r.battles_won} W</div></div>`).join(''):emp('🏟️','No Battles Yet','Fight your first battle to appear here.');
+// ==================== TICKER ====================
+async function loadTicker() {
+    const tickerEl = document.getElementById('ticker-inner');
+    if (!tickerEl) return;
+    
+    try {
+        const { data: battles } = await sb
+            .from('battles')
+            .select('winner_name, loser_name, question_title')
+            .eq('status', 'completed')
+            .order('created_at', { ascending: false })
+            .limit(6);
+        
+        if (!battles || battles.length === 0) {
+            tickerEl.innerHTML = '<span class="t-empty">No battles yet — be the first to fight! ⚔</span>';
+            return;
+        }
+        
+        const items = battles.map(b => `
+            <span class="ti">
+                <span class="tdot"></span>
+                <span class="twin">${b.winner_name || 'Winner'}</span> defeated ${b.loser_name || 'Loser'} in "${b.question_title || 'Battle'}"
+            </span>
+        `);
+        
+        tickerEl.innerHTML = `<div class="t-scroll">${[...items, ...items].join('')}</div>`;
+    } catch (err) {
+        console.error('Ticker error:', err);
+    }
 }
 
-// ── PROGRESS ────────────────────────────────
-function showProgressLocked(){
-  const lock=id=>document.getElementById(id).innerHTML=`<div class="graph-locked"><div class="lock-ico">🔒</div><div class="lock-t">Log in to see your progress</div><button class="btn btn-ghost" style="margin-top:8px;font-size:.72rem;padding:6px 14px;" onclick="openModal()">Log In</button></div>`;
-  lock('g-progress'); lock('g-battles');
-}
-async function loadUserGraphs(uid){
-  const {data:sh}=await sb.from('solve_history').select('solved_at,difficulty').eq('user_id',uid).gte('solved_at',new Date(Date.now()-30*864e5).toISOString()).order('solved_at',{ascending:true});
-  const gp=document.getElementById('g-progress');
-  if(!sh||sh.length===0){gp.innerHTML=`<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">📊</div><div class="lock-t">No solves yet. Generate & solve questions to see your graph.</div></div>`;} 
-  else {
-    const dm={};sh.forEach(d=>{const day=d.solved_at.split('T')[0];if(!dm[day])dm[day]=0;dm[day]++;});
-    const lbls=Object.keys(dm).slice(-14);const mx=Math.max(...lbls.map(d=>dm[d]),1);
-    gp.innerHTML=`<div style="display:flex;gap:5px;align-items:flex-end;height:130px;overflow:hidden;">${lbls.map(d=>`<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;flex:1;gap:3px;"><div style="width:100%;background:var(--star);border-radius:3px 3px 1px 1px;opacity:.85;height:${Math.round((dm[d]/mx)*110)+8}px;min-height:5px;"></div><span style="font-size:.48rem;color:var(--t3);transform:rotate(-40deg);white-space:nowrap;">${d.slice(5)}</span></div>`).join('')}</div>`;
-  }
-  const {data:bh}=await sb.from('battles').select('created_at,winner_id').or(`player1_id.eq.${uid},player2_id.eq.${uid}`).gte('created_at',new Date(Date.now()-7*864e5).toISOString()).eq('status','completed');
-  const gb=document.getElementById('g-battles');
-  if(!bh||bh.length===0){gb.innerHTML=`<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">⚔️</div><div class="lock-t">No battles this week.</div></div>`;}
-  else {
-    const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];const w=Array(7).fill(0);const t=Array(7).fill(0);
-    bh.forEach(b=>{const d=new Date(b.created_at).getDay();t[d]++;if(b.winner_id===uid)w[d]++;});
-    const mx=Math.max(...t,1);
-    gb.innerHTML=`<div style="display:flex;gap:6px;align-items:flex-end;height:130px;">${days.map((d,i)=>`<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;flex:1;gap:3px;"><div style="width:100%;background:${w[i]>0?'var(--mint)':'var(--border)'};border-radius:3px 3px 1px 1px;height:${Math.round((t[i]/mx)*110)+8}px;min-height:5px;opacity:.9;"></div><span style="font-size:.6rem;color:var(--t2);">${d}</span></div>`).join('')}</div><div style="margin-top:6px;font-size:.65rem;color:var(--t3);">Green = wins</div>`;
-  }
+// ==================== STARS BACKGROUND ====================
+function generateStars() {
+    const starsEl = document.getElementById('stars');
+    if (!starsEl) return;
+    
+    for (let i = 0; i < 100; i++) {
+        const star = document.createElement('div');
+        star.className = 'star-el';
+        const size = Math.random() * 2 + 0.5;
+        star.style.cssText = `
+            width: ${size}px;
+            height: ${size}px;
+            left: ${Math.random() * 100}%;
+            top: ${Math.random() * 100}%;
+            background: rgba(255, 215, 100, ${Math.random() * 0.5 + 0.2});
+            --dur: ${Math.random() * 3 + 2}s;
+            --delay: ${Math.random() * 4}s;
+        `;
+        starsEl.appendChild(star);
+    }
 }
 
-// ── REALTIME ────────────────────────────────
-sb.channel('rt')
-  .on('postgres_changes',{event:'*',schema:'public',table:'battles'},()=>{loadBattles();loadTicker();loadStats();})
-  .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},()=>{loadLeaderboard();loadStats();})
-  .subscribe();
-
-// ── INIT ─────────────────────────────────────
-(async()=>{
-  // Handle Google OAuth redirect
-  if(window.location.hash.includes('access_token')){
-    const p = new URLSearchParams(window.location.hash.substring(1));
-    const at = p.get('access_token');
-    const rt = p.get('refresh_token');
-    if(at) await sb.auth.setSession({ access_token:at, refresh_token:rt||'' });
-    history.replaceState(null,'',window.location.pathname);
-  }
-  try {
-    const {data:{session}}=await sb.auth.getSession();
-    if(session?.user){
-      currentUser=session.user;
-      showNavUser(currentUser);
-      await upsertProfile(currentUser);
-      try {
-        const {data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
-        renderBadges(prof);
+// ==================== INITIALIZATION ====================
+async function init() {
+    generateStars();
+    
+    // Auth state handler
+    sb.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user) {
+            currentUser = session.user;
+            closeModal();
+            await upsertProfile(currentUser);
+            const profile = await getProfile(currentUser.id);
+            showNavUser(currentUser);
+            renderBadges(profile);
+            loadUserGraphs(currentUser.id);
+            loadQuestions();
+            loadStats();
+            loadLeaderboard();
+            loadBattles();
+            loadTicker();
+        } else {
+            currentUser = null;
+            showNavGuest();
+            renderBadges(null);
+            showProgressLocked();
+            loadQuestions();
+            loadStats();
+            loadLeaderboard();
+            loadBattles();
+            loadTicker();
+        }
+    });
+    
+    // Check existing session
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) {
+        currentUser = session.user;
+        await upsertProfile(currentUser);
+        const profile = await getProfile(currentUser.id);
+        showNavUser(currentUser);
+        renderBadges(profile);
         loadUserGraphs(currentUser.id);
-      } catch(e){ renderBadges(null); showProgressLocked(); }
     } else {
-      showProgressLocked();
-      renderBadges(null);
+        showProgressLocked();
+        renderBadges(null);
     }
-  } catch(e){ showProgressLocked(); renderBadges(null); }
-  await Promise.all([loadStats(),loadTicker(),loadBattles(),loadLeaderboard(),loadQuestions()]);
-})();
+    
+    // Load all data
+    await Promise.all([
+        loadStats(),
+        loadTicker(),
+        loadBattles(),
+        loadLeaderboard(),
+        loadQuestions()
+    ]);
+    
+    // Set up realtime subscriptions
+    const channel = sb.channel('public-changes');
+    channel
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'battles' }, () => {
+            loadBattles();
+            loadTicker();
+            loadStats();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'questions' }, () => {
+            loadQuestions();
+            loadStats();
+            loadLeaderboard();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+            loadLeaderboard();
+            loadStats();
+            if (currentUser) {
+                getProfile(currentUser.id).then(profile => renderBadges(profile));
+            }
+        })
+        .subscribe();
+}
+
+// Start the app
+document.addEventListener('DOMContentLoaded', init);
 </script>
-</body>
-</html>
