@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CodeArena ⋆˙⟡ Battle. Grow. Conquer.</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://esm.run/@supabase/supabase-js@2"></script>
 <style>
 /* ═══════════════ TOKENS ═══════════════ */
 :root {
@@ -797,6 +797,12 @@ Or: My phone battery drains faster when I have more apps open..." rows="4"></tex
   <div class="f-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a></div>
 </footer>
 <script>
+  
+// Fallback: if Supabase doesn't load, try alternative CDN
+if (typeof supabase === 'undefined') {
+    document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');
+}
+</script>
 // ==================== SUPABASE CONFIG ====================
 const SUPABASE_URL = 'https://tcawycumfawsxkcfnlpv.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjYXd5Y3VtZmF3c3hrY2ZubHB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MDc5MTEsImV4cCI6MjA5NDQ4MzkxMX0.8RJOpUxiMdveBMaZ1vadyObZLenumzvYYcBg5arIGYU';
