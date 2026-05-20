@@ -864,6 +864,12 @@ sb.auth.onAuthStateChange(async(_, session)=>{
     const prof = await getProfile(currentUser.id);
     renderBadges(prof);
     loadUserGraphs(currentUser.id);
+    loadUserGraphs(currentUser.id);
+// Hide progress locked state
+const gp = document.getElementById('g-progress');
+const gb = document.getElementById('g-battles');
+if(gp && gp.querySelector('.graph-locked')) loadUserGraphs(currentUser.id);
+if(gb && gb.querySelector('.graph-locked')) loadUserGraphs(currentUser.id);
     loadQuestions();
     loadStats();
   }
