@@ -853,7 +853,6 @@ async function signOut(){
   console.log('UI updated');
   alert('Signed out! Refresh page manually.');
 }
-
 sb.auth.onAuthStateChange(async(_, session)=>{
   if(session?.user){
     currentUser = session.user;
@@ -864,7 +863,9 @@ sb.auth.onAuthStateChange(async(_, session)=>{
     renderBadges(prof);
     loadUserGraphs(currentUser.id);
     loadQuestions();
-  } else {
+    loadStats();
+  }
+   else {
     currentUser = null;
     showNavGuest();
     renderBadges(null);
@@ -1279,7 +1280,13 @@ sb.channel('rt')
   .on('postgres_changes',{event:'*',schema:'public',table:'battles'},()=>{loadBattles();loadTicker();loadStats();})
   .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},()=>{loadLeaderboard();loadStats();})
   .subscribe();
-
+// Handle OAuth hash redirect
+if(window.location.hash.includes('access_token')){
+  const p = new URLSearchParams(window.location.hash.substring(1));
+  const at = p.get('access_token');
+  const rt = p.get('refresh_token');
+  if(at) sb.auth.setSession({ access_token:at, refresh_token:rt||'' }).then(()=>window.location.hash='');
+}
 // ── INIT ─────────────────────────────────────
 (async()=>{
   // Handle Google OAuth redirect
