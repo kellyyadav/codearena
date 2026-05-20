@@ -765,7 +765,9 @@ Or: My phone battery drains faster when I have more apps open..." rows="4"></tex
         <li><span class="ck">✓</span> Personal progress tracking</li>
         <li><span class="ck">✓</span> Full leaderboard access</li>
       </ul>
-      <button class="btn-price btn-price-pro" onclick="openModal()">Get started free ✦</button>
+      <button class="btn-pricing-p" id="free-plan-btn" onclick="currentUser ? alert('You are already on the Free plan! ✅') : openModal()">
+  <span id="free-plan-text">Get started free ✦</span>
+</button>
     </div>
     <div class="price-card" style="opacity:.7;">
       <div class="price-plan">Pro — Coming Soon</div>
@@ -908,6 +910,14 @@ function showNavUser(u){
     ${av ? `<img src="${av}" class="nav-avatar"/>` : `<div style="width:30px;height:30px;border-radius:50%;background:var(--card2);border:1.5px solid var(--star);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--star);">${name[0].toUpperCase()}</div>`}
     <button onclick="event.preventDefault(); signOut(); return false;"style="padding:5px 12px;background:transparent;border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;">Sign out</button>`;
   document.getElementById('manual-signout-btn').style.display = 'block';
+  
+  // Update pricing button
+  const freePlanBtn = document.getElementById('free-plan-btn');
+  if(freePlanBtn){
+    freePlanBtn.innerHTML = '<span style="opacity:0.7;">Your Current Plan ✓</span>';
+    freePlanBtn.style.cursor = 'default';
+    freePlanBtn.onclick = null;
+  }
 }
 function showNavGuest(){
   document.getElementById('nav-auth').innerHTML = `<button class="btn btn-ghost" onclick="openModal()">Log in</button><button class="btn btn-primary" onclick="openModal()">Start free ✦</button>`;
@@ -1280,13 +1290,7 @@ sb.channel('rt')
   .on('postgres_changes',{event:'*',schema:'public',table:'battles'},()=>{loadBattles();loadTicker();loadStats();})
   .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},()=>{loadLeaderboard();loadStats();})
   .subscribe();
-// Handle OAuth hash redirect
-if(window.location.hash.includes('access_token')){
-  const p = new URLSearchParams(window.location.hash.substring(1));
-  const at = p.get('access_token');
-  const rt = p.get('refresh_token');
-  if(at) sb.auth.setSession({ access_token:at, refresh_token:rt||'' }).then(()=>window.location.hash='');
-}
+
 // ── INIT ─────────────────────────────────────
 (async()=>{
   // Handle Google OAuth redirect
