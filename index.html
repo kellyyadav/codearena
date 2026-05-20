@@ -570,8 +570,10 @@ footer {
     <span class="nav-link" onclick="navTo('pricing')">Pricing</span>
   </div>
   <div class="nav-right" id="nav-auth">
+    <button id="manual-signout-btn" onclick="window.location.reload(); localStorage.clear(); sessionStorage.clear();" style="display:none;padding:5px 12px;background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;margin-left:8px;">Logout</button>
     <button class="btn btn-ghost" onclick="openModal()">Log in</button>
     <button class="btn btn-primary" onclick="openModal()">Start free ✦</button>
+    <button id="manual-signout-btn" onclick="localStorage.clear(); sessionStorage.clear(); window.location.reload();" style="display:none;padding:5px 12px;background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;margin-left:8px;">⟲ Logout</button>
   </div>
 </nav>
 
@@ -904,9 +906,11 @@ function showNavUser(u){
     <span class="nav-uname">${name}</span>
     ${av ? `<img src="${av}" class="nav-avatar"/>` : `<div style="width:30px;height:30px;border-radius:50%;background:var(--card2);border:1.5px solid var(--star);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--star);">${name[0].toUpperCase()}</div>`}
     <button onclick="event.preventDefault(); signOut(); return false;"style="padding:5px 12px;background:transparent;border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;">Sign out</button>`;
+  document.getElementById('manual-signout-btn').style.display = 'block';
 }
 function showNavGuest(){
   document.getElementById('nav-auth').innerHTML = `<button class="btn btn-ghost" onclick="openModal()">Log in</button><button class="btn btn-primary" onclick="openModal()">Start free ✦</button>`;
+  document.getElementById('manual-signout-btn').style.display = 'none';   // ✅
 }
 
 // ── AI QUESTION GENERATOR ────────────────
