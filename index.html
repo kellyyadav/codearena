@@ -872,6 +872,13 @@ if(gp && gp.querySelector('.graph-locked')) loadUserGraphs(currentUser.id);
 if(gb && gb.querySelector('.graph-locked')) loadUserGraphs(currentUser.id);
     loadQuestions();
     loadStats();
+    setTimeout(() => {
+      const hasData = prof && (prof.easy_solved > 0 || prof.medium_solved > 0 || prof.hard_solved > 0);
+      if(!hasData) {
+        document.getElementById('g-progress').innerHTML = '<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">📊</div><div class="lock-t">No solves yet. Start solving!</div></div>';
+        document.getElementById('g-battles').innerHTML = '<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">⚔️</div><div class="lock-t">No battles yet. Join your first battle!</div></div>';
+      }
+    }, 500);
   }
    else {
     currentUser = null;
