@@ -1322,6 +1322,7 @@ sb.channel('rt')
   // Then check session
   try {
     const {data:{session}} = await sb.auth.getSession();
+     if(session?.user){
         const {data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
         renderBadges(prof);
         loadUserGraphs(currentUser.id);
