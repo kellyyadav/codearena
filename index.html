@@ -864,23 +864,21 @@ sb.auth.onAuthStateChange(async(_, session)=>{
     const prof = await getProfile(currentUser.id);
     renderBadges(prof);
     loadUserGraphs(currentUser.id);
-    loadUserGraphs(currentUser.id);
-// Hide progress locked state
-const gp = document.getElementById('g-progress');
-const gb = document.getElementById('g-battles');
-if(gp && gp.querySelector('.graph-locked')) loadUserGraphs(currentUser.id);
-if(gb && gb.querySelector('.graph-locked')) loadUserGraphs(currentUser.id);
     loadQuestions();
     loadStats();
+    loadLeaderboard();
+    // Unlock progress graphs immediately
     setTimeout(() => {
-      const hasData = prof && (prof.easy_solved > 0 || prof.medium_solved > 0 || prof.hard_solved > 0);
-      if(!hasData) {
-        document.getElementById('g-progress').innerHTML = '<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">📊</div><div class="lock-t">No solves yet. Start solving!</div></div>';
-        document.getElementById('g-battles').innerHTML = '<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">⚔️</div><div class="lock-t">No battles yet. Join your first battle!</div></div>';
+      const gp = document.getElementById('g-progress');
+      const gb = document.getElementById('g-battles');
+      if(gp && gp.innerHTML.includes('Log in to see')) {
+        gp.innerHTML = '<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">📊</div><div class="lock-t">No solves yet. Start solving questions!</div></div>';
       }
-    }, 500);
-  }
-   else {
+      if(gb && gb.innerHTML.includes('Log in to see')) {
+        gb.innerHTML = '<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">⚔️</div><div class="lock-t">No battles yet. Join your first battle!</div></div>';
+      }
+    }, 300);
+  } else {
     currentUser = null;
     showNavGuest();
     renderBadges(null);
