@@ -937,6 +937,7 @@ function showNavGuest(){
 
 // ── AI QUESTION GENERATOR ────────────────
 async function generateQuestion(){
+  if(!currentUser){ openModal(); return; }
   const situation = document.getElementById('situation-input').value.trim();
   if(!situation){ alert('Please describe a situation first!'); return; }
 
