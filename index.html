@@ -1305,35 +1305,45 @@ sb.channel('rt')
 
 // ── INIT ─────────────────────────────────────
 
-(async()=>{
+(async () => {
   // Handle OAuth redirect FIRST
-  if(window.location.hash.includes('access_token')){
+  if (window.location.hash.includes('access_token')) {
     const p = new URLSearchParams(window.location.hash.substring(1));
     const at = p.get('access_token');
     const rt = p.get('refresh_token');
-    if(at){
-      await sb.auth.setSession({ access_token: at, refresh_token: rt||'' });
+    if (at) {
+      await sb.auth.setSession({ access_token: at, refresh_token: rt || '' });
       history.replaceState(null, '', window.location.pathname);
       // Wait for session to be fully set
       await new Promise(resolve => setTimeout(resolve, 500));
     }
   }
-  
+
   // Then check session
   try {
-    const {data:{session}} = await sb.auth.getSession();
-     if(session?.user){
-        const {data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+    const { data: { session } = {} } = await sb.auth.getSession();
+    if (session?.user) {
+      currentUser = session.user;
+      try {
+        const { data: prof } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
         renderBadges(prof);
         loadUserGraphs(currentUser.id);
-      } catch(e){ renderBadges(null); showProgressLocked(); }
+      } catch (innerErr) {
+        renderBadges(null);
+        showProgressLocked();
+      }
     } else {
       showProgressLocked();
       renderBadges(null);
     }
-  } catch(e){ showProgressLocked(); renderBadges(null); }
-  await Promise.all([loadStats(),loadTicker(),loadBattles(),loadLeaderboard(),loadQuestions()]);
+  } catch (e) {
+    showProgressLocked();
+    renderBadges(null);
+  }
+
+  await Promise.all([loadStats(), loadTicker(), loadBattles(), loadLeaderboard(), loadQuestions()]);
 })();
+  
 </script>
 </body>
 </html>
