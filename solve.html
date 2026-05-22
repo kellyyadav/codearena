@@ -429,7 +429,7 @@ function switchOutTab(tab, el) {
 function initMonaco() {
   require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
   require(['vs/editor/editor.main'], function () {
-    monaco.editor.defineTheme('Crack It', {
+    monaco.editor.defineTheme('CrackIt', {
       base: 'vs-dark',
       inherit: true,
       rules: [
@@ -454,7 +454,7 @@ function initMonaco() {
     editor = monaco.editor.create(document.getElementById('monaco-editor'), {
       value: getStarterCode('javascript'),
       language: 'javascript',
-      theme: 'vs-dark',
+      theme: 'CrackIt',
       fontSize: 14,
       fontFamily: "'Space Mono', monospace",
       lineNumbers: 'on',
