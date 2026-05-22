@@ -315,19 +315,18 @@ let submissions = [];
 
 // ── INIT ─────────────────────────────────
  
-const {data:{session}} = await sb.auth.getSession();
-if(!session?.user){
-  alert('Please login first!');
-  window.location.href = '/';
-  return;
-}
+
 const params = new URLSearchParams(window.location.search);
 const questionId = params.get('id');
 
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
-  if (session?.user) currentUser = session.user;
-
+  if (!session?.user) {
+    alert('Please login first!');
+    window.location.href = '/';
+    return;
+  }
+  currentUser = session.user;
   if (!questionId) {
     showError('No question ID found. Go back and try again.');
     return;
