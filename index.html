@@ -1297,6 +1297,7 @@ async function loadUserGraphs(uid){
     }).join('')}
   </div>
 `; 
+}
   const {data:bh}=await sb.from('battles').select('created_at,winner_id').or(`player1_id.eq.${uid},player2_id.eq.${uid}`).gte('created_at',new Date(Date.now()-7*864e5).toISOString()).eq('status','completed');
   const gb=document.getElementById('g-battles');
   if(!bh||bh.length===0){gb.innerHTML=`<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">⚔️</div><div class="lock-t">No battles this week.</div></div>`;}
