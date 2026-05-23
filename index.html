@@ -73,7 +73,7 @@ nav {
 .btn { cursor:pointer; border:none; font-family:'Space Grotesk',sans-serif; font-weight:600; transition:all .18s; }
 .btn-ghost {
   padding:7px 18px; background:var(--star);
-  border:1px solid var(--border2); color:var(--t2);
+  border:1px solid var(--border2); color:#0f1117;
   border-radius:8px; font-size:.82rem;
 }
 .btn-ghost:hover { border-color:var(--t2); color:var(--t1); }
@@ -919,7 +919,7 @@ function showNavUser(u){
     <span class="nav-uname">${name}</span>
     ${av ? `<img src="${av}" class="nav-avatar"/>` : `<div style="width:30px;height:30px;border-radius:50%;background:var(--card2);border:1.5px solid var(--star);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--star);">${name[0].toUpperCase()}</div>`}
     <button onclick="event.preventDefault(); signOut(); return false;"style="padding:5px 12px;background:var(--star);border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;">Sign out</button>`;
-  document.getElementById('manual-signout-btn').style.display = 'block';
+  const logoutBtn = document.getElementById('manual-signout-btn'); if(logoutBtn) logoutBtn.style.display = 'block';
   
   // Update pricing button
   const freePlanBtn = document.getElementById('free-plan-btn');
@@ -931,7 +931,7 @@ function showNavUser(u){
 }
 function showNavGuest(){
   document.getElementById('nav-auth').innerHTML = `<button class="btn btn-ghost" onclick="openModal()">Log in</button><button class="btn btn-primary" onclick="openModal()">Start free ✦</button>`;
-  document.getElementById('manual-signout-btn').style.display = 'none';   // ✅
+  const logoutBtn = document.getElementById('manual-signout-btn'); if(logoutBtn) logoutBtn.style.display = 'none';   // ✅
 }
 
 // ── AI QUESTION GENERATOR ────────────────
