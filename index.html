@@ -912,13 +912,8 @@ async function upsertProfile(u){
 function showNavUser(u){
   const name = u.user_metadata?.name || u.email.split('@')[0];
   const av = u.user_metadata?.avatar_url;
-  const authDiv = document.getElementById('nav-auth');
-  if(!authDiv) return;
-  authDiv.innerHTML = `
-    <span class="nav-uname">${name}</span>
-    ${av ? `<img src="${av}" class="nav-avatar"/>` : `<div style="width:30px;height:30px;border-radius:50%;background:var(--card2);border:1.5px solid var(--star);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--star);">${name[0].toUpperCase()}</div>`}
-    <button onclick="event.preventDefault(); sb.auth.signOut(); setTimeout(()=>location.reload(), 200);" style="padding:5px 12px;background:transparent;border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;">Sign out</button>`;
-  
+  document.getElementById('nav-auth').innerHTML = `<span class="nav-uname">${name}</span>${av ? `<img src="${av}" class="nav-avatar"/>` : `<div style="width:30px;height:30px;border-radius:50%;background:var(--card2);border:1.5px solid var(--star);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--star);">${name[0].toUpperCase()}</div>`}
+    <button onclick="sb.auth.signOut(); setTimeout(()=>location.reload(),300);" style="padding:5px 12px;background:transparent;border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;">Sign out</button>`;
   const freePlanBtn = document.getElementById('free-plan-btn');
   if(freePlanBtn){
     freePlanBtn.innerHTML = '<span style="opacity:0.7;">Your Current Plan ✓</span>';
@@ -926,12 +921,9 @@ function showNavUser(u){
     freePlanBtn.onclick = null;
   }
 }
-
 function showNavGuest(){
-  const authDiv = document.getElementById('nav-auth');
-  if(!authDiv) return;
-  authDiv.innerHTML = `<button class="btn btn-ghost" onclick="openModal()">Log in</button><button class="btn btn-primary" onclick="openModal()">Start free ✦</button>`;
-}
+  document.getElementById('nav-auth').innerHTML = `<button class="btn btn-ghost" onclick="openModal()">Log in</button><button class="btn btn-primary" onclick="openModal()">Start free ✦</button>`;
+} 
 
 // ── AI QUESTION GENERATOR ────────────────
 async function generateQuestion(){
