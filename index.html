@@ -1215,29 +1215,35 @@ async function loadBattles(){
 // ── QUESTIONS LIST ────────────────────────
 async function loadQuestions(){
   try {
-    const {data} = await sb.from('questions')
+    const { data, error } = await sb.from('questions')
       .select('id,title,difficulty,tags,created_at,created_by')
-      .order('created_at',{ascending:false})
+      .order('created_at', { ascending: false })
       .limit(20);
+    if (error) throw error;
     const el = document.getElementById('questions-container');
-    if(!el) return;
-    if(!data||data.length===0){
-      el.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--t2);font-size:.84rem;">No questions yet — generate and publish the first one! ✦</div>`;
+    if (!el) return;
+    if (!data || data.length === 0) {
+      el.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--t2);font-size:.84rem;">No questions yet — generate and publish the first one! ✦</div>`;
       return;
     }
-    const dc=d=>d==='hard'?'chip-rose':d==='medium'?'chip-yellow':'chip-star';
-    el.innerHTML=data.map(q=>`
+    const dc = d => d === 'hard' ? 'chip-rose' : (d === 'medium' ? 'chip-yellow' : 'chip-star');
+    el.innerHTML = data.map(q => `
       <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:12px;transition:transform .2s,border-color .2s;" onmouseover="this.style.transform='translateY(-3px)';this.style.borderColor='var(--border2)'" onmouseout="this.style.transform='';this.style.borderColor='var(--border)'">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span class="chip ${dc(q.difficulty)}">${q.difficulty}</span>
-          ${(q.tags||[]).slice(0,2).map(t=>`<span class="chip chip-sky">${t}</span>`).join('')}
+          ${(q.tags || []).slice(0,2).map(t => `<span class="chip chip-sky">${t}</span>`).join('')}
         </div>
         <div style="font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:var(--t1);line-height:1.3;">${q.title}</div>
         <div style="font-size:.72rem;color:var(--t3);">by Community</div>
         <button onclick="window.location.href='/solve.html?id=${q.id}'" style="margin-top:auto;width:100%;padding:9px;background:var(--star);color:#0f1117;border:none;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;">▶ Solve Now</button>
-        ${currentUser && q.created_by === currentUser.id ? `<button onclick="deleteQuestion('${q.id}',this)" style="width:100%;padding:7px;background:var(--star);color:var(--rose);border:1px solid rgba(251,113,133,.2);border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;margin-top:4px;">🗑 Delete</button>` : ''}
-      </div>`).join('');
-  } catch(e){ console.log('questions error:',e); }
+        ${currentUser && q.created_by === currentUser.id ? `<button onclick="deleteQuestion('${q.id}',this)" style="width:100%;padding:7px;background:transparent;color:var(--rose);border:1px solid rgba(251,113,133,.2);border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;margin-top:4px;">🗑 Delete</button>` : ''}
+      </div>
+    `).join('');
+  } catch(e) {
+    console.error("loadQuestions error:", e);
+    const el = document.getElementById('questions-container');
+    if (el) el.innerHTML = `<div style="color:var(--rose);text-align:center;padding:20px;">Error loading questions: ${e.message}</div>`;
+  }
 }
 
 async function deleteQuestion(id, btn){
