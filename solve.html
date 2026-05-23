@@ -293,12 +293,271 @@ body{background:var(--bg);color:var(--t1);font-family:'Space Grotesk',sans-serif
 </div>
 
 <script>
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Crack It ⋆˙⟡ Solve</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+<style>
+:root {
+  --bg:#0f1117; --surface:#161b27; --card:#1c2333; --card2:#212840;
+  --border:#2a3350; --border2:#334066;
+  --star:#f4c430; --mint:#4ade80; --sky:#60a5fa; --lilac:#a78bfa;
+  --rose:#fb7185; --peach:#fdba74; --teal:#2dd4bf;
+  --t1:#eef0f8; --t2:#8b93b0; --t3:#545e80;
+  --r:10px; --r2:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--t1);font-family:'Space Grotesk',sans-serif;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+.topbar{
+  height:52px; display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px; background:var(--surface);
+  border-bottom:1px solid var(--border); flex-shrink:0;
+}
+.tb-logo{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--t1);text-decoration:none;display:flex;align-items:center;gap:6px;}
+.tb-star{color:var(--star);}
+.tb-center{display:flex;align-items:center;gap:12px;}
+.tb-qtitle{font-size:.82rem;font-weight:600;color:var(--t2);max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tb-diff{padding:2px 8px;border-radius:100px;font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+.diff-easy{background:rgba(74,222,128,.1);color:var(--mint);border:1px solid rgba(74,222,128,.2);}
+.diff-medium{background:rgba(244,196,48,.1);color:var(--star);border:1px solid rgba(244,196,48,.2);}
+.diff-hard{background:rgba(251,113,133,.1);color:var(--rose);border:1px solid rgba(251,113,133,.2);}
+.tb-right{display:flex;align-items:center;gap:10px;}
+.tb-back{padding:6px 14px;background:var(--card);border:1px solid var(--border);border-radius:7px;color:var(--t2);font-size:.76rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .18s;}
+.tb-back:hover{border-color:var(--border2);color:var(--t1);}
+.tb-timer{font-family:'Space Mono',monospace;font-size:.88rem;color:var(--star);min-width:50px;text-align:center;}
+
+.workspace{display:flex;height:calc(100vh - 52px);}
+.q-panel{
+  width:420px; flex-shrink:0;
+  background:var(--surface); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.q-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.q-tab{
+  padding:10px 18px; font-size:.78rem; font-weight:600; color:var(--t2);
+  cursor:pointer; border-bottom:2px solid transparent; transition:all .18s;
+}
+.q-tab.active{color:var(--star);border-bottom-color:var(--star);}
+.q-tab:hover{color:var(--t1);}
+.q-body{flex:1;overflow-y:auto;padding:20px;}
+
+.q-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:12px;line-height:1.3;}
+.q-section{margin-top:18px;}
+.q-sec-label{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t2);margin-bottom:8px;}
+.q-text{font-size:.86rem;color:var(--t2);line-height:1.75;}
+.q-example{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--r); padding:12px 14px; margin-top:8px;
+  font-family:'Space Mono',monospace; font-size:.72rem; line-height:1.8;
+}
+.q-example .inp{color:var(--sky);}
+.q-example .out{color:var(--mint);}
+.q-example .exp{color:var(--t3);}
+.q-constraint{font-size:.78rem;color:var(--t2);padding:4px 0;display:flex;align-items:flex-start;gap:7px;}
+.q-constraint::before{content:'•';color:var(--star);margin-top:1px;}
+.q-hint{
+  margin-top:12px; padding:12px 14px;
+  background:rgba(244,196,48,.05); border:1px solid rgba(244,196,48,.15);
+  border-radius:var(--r); font-size:.8rem; color:var(--star); line-height:1.6;
+}
+.q-tag{display:inline-flex;align-items:center;padding:2px 8px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.15);border-radius:100px;font-size:.62rem;color:var(--sky);margin:2px;}
+
+.q-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;color:var(--t2);}
+.spin{width:24px;height:24px;border:2px solid var(--border2);border-top-color:var(--star);border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+.editor-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.editor-bar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 16px; background:var(--card); border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.lang-select{
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--t1); font-family:'Space Grotesk',sans-serif; font-size:.8rem;
+  padding:5px 10px; border-radius:7px; outline:none; cursor:pointer;
+}
+.editor-actions{display:flex;gap:8px;}
+.btn-run{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 18px; background:var(--mint); color:#0f1117;
+  border:none; border-radius:7px; font-family:'Space Grotesk',sans-serif;
+  font-size:.8rem; font-weight:700; cursor:pointer; transition:all .18s;
+}
+.btn-run:hover{filter:brightness(1.08);}
+.btn-run:disabled{opacity:.5;cursor:not-allowed;filter:none;}
+.btn-submit{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 18px; background:var(--star); color:#0f1117;
+  border:none; border-radius:7px; font-family:'Space Grotesk',sans-serif;
+  font-size:.8rem; font-weight:700; cursor:pointer; transition:all .18s;
+}
+.btn-submit:hover{filter:brightness(1.08);}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed;filter:none;}
+
+#monaco-editor{flex:1;min-height:0;}
+.resize-handle{
+  height:4px; background:var(--border); cursor:row-resize; flex-shrink:0;
+  transition:background .18s;
+}
+.resize-handle:hover{background:var(--star);}
+.output-panel{
+  height:220px; flex-shrink:0;
+  background:var(--card); border-top:1px solid var(--border);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.output-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.output-tab{padding:8px 16px;font-size:.76rem;font-weight:600;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;transition:all .18s;}
+.output-tab.active{color:var(--star);border-bottom-color:var(--star);}
+.output-body{flex:1;overflow-y:auto;padding:14px 16px;}
+
+.test-grid{display:flex;flex-direction:column;gap:8px;}
+.test-case{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px; border-radius:8px;
+  background:var(--surface); border:1px solid var(--border);
+  font-size:.78rem;
+}
+.test-case.pass{border-color:rgba(74,222,128,.25);background:rgba(74,222,128,.04);}
+.test-case.fail{border-color:rgba(251,113,133,.25);background:rgba(251,113,133,.04);}
+.test-case.running{border-color:rgba(244,196,48,.2);background:rgba(244,196,48,.03);}
+.tc-icon{font-size:1rem;flex-shrink:0;}
+.tc-info{flex:1;}
+.tc-label{font-weight:600;color:var(--t1);margin-bottom:2px;}
+.tc-detail{font-family:'Space Mono',monospace;font-size:.68rem;color:var(--t2);}
+.tc-badge{font-family:'Space Mono',monospace;font-size:.68rem;padding:2px 7px;border-radius:4px;font-weight:700;}
+.tc-badge.pass{background:rgba(74,222,128,.15);color:var(--mint);}
+.tc-badge.fail{background:rgba(251,113,133,.15);color:var(--rose);}
+
+.console-out{font-family:'Space Mono',monospace;font-size:.74rem;color:var(--t2);line-height:1.8;white-space:pre-wrap;}
+.console-out .err{color:var(--rose);}
+.console-out .ok{color:var(--mint);}
+
+.submit-result{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:12px;text-align:center;
+}
+.sr-icon{font-size:2.8rem;}
+.sr-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;}
+.sr-sub{font-size:.8rem;color:var(--t2);}
+
+.output-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--t3);}
+.output-empty-ico{font-size:1.6rem;opacity:.3;}
+.output-empty-t{font-size:.76rem;}
+
+.solved-banner{
+  position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;
+  background:rgba(5,7,14,.9);backdrop-filter:blur(16px);
+  display:none;align-items:center;justify-content:center;
+}
+.solved-banner.show{display:flex;}
+.sb-box{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:48px 40px;max-width:420px;width:100%;
+  text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.5);
+}
+.sb-ico{font-size:3.5rem;margin-bottom:16px;}
+.sb-title{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:8px;color:var(--star);}
+.sb-sub{font-size:.86rem;color:var(--t2);line-height:1.65;margin-bottom:24px;}
+.sb-stats{display:flex;gap:20px;justify-content:center;margin-bottom:24px;}
+.sb-stat{text-align:center;}
+.sb-stat-n{font-family:'Space Mono',monospace;font-size:1.4rem;font-weight:700;color:var(--t1);display:block;}
+.sb-stat-l{font-size:.68rem;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;}
+.sb-btn{
+  width:100%;padding:12px;border:none;border-radius:9px;
+  background:var(--star);color:#0f1117;
+  font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:700;
+  cursor:pointer;transition:all .2s;
+}
+.sb-btn:hover{filter:brightness(1.08);}
+
+.spinner-sm{display:inline-block;width:13px;height:13px;border:2px solid rgba(15,17,23,.3);border-top-color:#0f1117;border-radius:50%;animation:sp .7s linear infinite;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/index.html" class="tb-logo">Crack It <span class="tb-star">⋆˙⟡</span></a>
+  <div class="tb-center">
+    <span class="tb-qtitle" id="tb-qtitle">Loading question…</span>
+    <span class="tb-diff" id="tb-diff"></span>
+  </div>
+  <div class="tb-right">
+    <span class="tb-timer" id="timer">00:00</span>
+    <a href="/index.html" class="tb-back">← Back</a>
+  </div>
+</div>
+
+<div class="workspace">
+  <div class="q-panel">
+    <div class="q-tabs">
+      <div class="q-tab active" onclick="switchQTab('problem',this)">Problem</div>
+      <div class="q-tab" onclick="switchQTab('hint',this)">💡 Hint</div>
+      <div class="q-tab" onclick="switchQTab('submissions',this)">My Submissions</div>
+    </div>
+    <div class="q-body" id="q-body">
+      <div class="q-loading"><div class="spin"></div><span>Loading question…</span></div>
+    </div>
+  </div>
+
+  <div class="editor-panel">
+    <div class="editor-bar">
+      <select class="lang-select" id="lang-select" onchange="changeLanguage()">
+        <option value="javascript">JavaScript</option>
+        <option value="python">Python</option>
+        <option value="java">Java</option>
+        <option value="cpp">C++</option>
+        <option value="go">Go</option>
+        <option value="typescript">TypeScript</option>
+        <option value="rust">Rust</option>
+        <option value="csharp">C#</option>
+      </select>
+      <div class="editor-actions">
+        <button class="btn-run" id="run-btn" onclick="runCode()">▶ Run</button>
+        <button class="btn-submit" id="submit-btn" onclick="submitCode()">✦ Submit</button>
+      </div>
+    </div>
+    <div id="monaco-editor"></div>
+    <div class="resize-handle" id="resize-handle"></div>
+    <div class="output-panel" id="output-panel">
+      <div class="output-tabs">
+        <div class="output-tab active" onclick="switchOutTab('testcases',this)">Test Cases</div>
+        <div class="output-tab" onclick="switchOutTab('console',this)">Console</div>
+      </div>
+      <div class="output-body" id="output-body">
+        <div class="output-empty">
+          <div class="output-empty-ico">▶</div>
+          <div class="output-empty-t">Run your code to see results</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="solved-banner" id="solved-banner">
+  <div class="sb-box">
+    <div class="sb-ico">🎉</div>
+    <div class="sb-title">Question Solved!</div>
+    <p class="sb-sub" id="sb-sub">Great job! All test cases passed.</p>
+    <div class="sb-stats" id="sb-stats"></div>
+    <button class="sb-btn" onclick="goBack()">← Back to Arena</button>
+  </div>
+</div>
+
+<script>
+// ---------- SUPABASE CONFIG ----------
 const SUPABASE_URL  = 'https://tcawycumfawsxkcfnlpv.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjYXd5Y3VtZmF3c3hrY2ZubHB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MDc5MTEsImV4cCI6MjA5NDQ4MzkxMX0.8RJOpUxiMdveBMaZ1vadyObZLenumzvYYcBg5arIGYU';
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
@@ -313,11 +572,36 @@ let consoleLog = '';
 let testResults = [];
 let submissions = [];
 
-// ── INIT ─────────────────────────────────
- 
-
 const params = new URLSearchParams(window.location.search);
 const questionId = params.get('id');
+
+// ---------- AUTH & PROFILE ----------
+async function ensureProfile(user) {
+  const { data: existing } = await sb.from('profiles').select('id').eq('id', user.id).single();
+  if (!existing) {
+    await sb.from('profiles').insert({
+      id: user.id,
+      username: user.user_metadata?.name || user.email.split('@')[0],
+      avatar_url: user.user_metadata?.avatar_url,
+      badge: 'none',
+      easy_solved: 0, medium_solved: 0, hard_solved: 0,
+      battles_won: 0, questions_count: 0
+    });
+  }
+}
+
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (session?.user) {
+    currentUser = session.user;
+    await ensureProfile(currentUser);
+    if (!currentQuestion && questionId) await loadQuestion(questionId);
+    if (!editor) initMonaco();
+  } else {
+    currentUser = null;
+    alert('Please login to continue');
+    window.location.href = '/';
+  }
+});
 
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
@@ -327,17 +611,14 @@ const questionId = params.get('id');
     return;
   }
   currentUser = session.user;
-  if (!questionId) {
-    showError('No question ID found. Go back and try again.');
-    return;
-  }
-
+  await ensureProfile(currentUser);
+  if (!questionId) { showError('No question ID found.'); return; }
   await loadQuestion(questionId);
   initMonaco();
   startTimer();
 })();
 
-// ── LOAD QUESTION ─────────────────────────
+// ---------- LOAD QUESTION ----------
 async function loadQuestion(id) {
   const { data, error } = await sb.from('questions').select('*').eq('id', id).single();
   if (error || !data) { showError('Question not found.'); return; }
@@ -346,13 +627,11 @@ async function loadQuestion(id) {
 }
 
 function renderQuestion(q) {
-  // Topbar
   document.getElementById('tb-qtitle').textContent = q.title;
   const diffEl = document.getElementById('tb-diff');
   diffEl.textContent = q.difficulty;
   diffEl.className = `tb-diff diff-${q.difficulty}`;
   document.title = `${q.title} — Crack It`;
-
   renderProblemTab(q);
 }
 
@@ -360,28 +639,20 @@ function renderProblemTab(q) {
   const examples = Array.isArray(q.examples) ? q.examples : [];
   const constraints = Array.isArray(q.constraints) ? q.constraints : [];
   const tags = Array.isArray(q.tags) ? q.tags : [];
-
   document.getElementById('q-body').innerHTML = `
     <div class="q-title">${q.title}</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
       ${tags.map(t=>`<span class="q-tag">${t}</span>`).join('')}
     </div>
     <p class="q-text">${q.problem.replace(/\n/g,'<br/>')}</p>
-
-    ${examples.length ? `
-    <div class="q-section">
-      <div class="q-sec-label">Examples</div>
-      ${examples.map((e,i)=>`
-        <div class="q-example">
-          <div><span class="inp">Input:</span> ${e.input}</div>
-          <div><span class="out">Output:</span> ${e.output}</div>
-          ${e.explanation?`<div><span class="exp">// ${e.explanation}</span></div>`:''}
-        </div>`).join('')}
+    ${examples.length ? `<div class="q-section"><div class="q-sec-label">Examples</div>
+      ${examples.map((e,i)=>`<div class="q-example">
+        <div><span class="inp">Input:</span> ${e.input}</div>
+        <div><span class="out">Output:</span> ${e.output}</div>
+        ${e.explanation?`<div><span class="exp">// ${e.explanation}</span></div>`:''}
+      </div>`).join('')}
     </div>` : ''}
-
-    ${constraints.length ? `
-    <div class="q-section">
-      <div class="q-sec-label">Constraints</div>
+    ${constraints.length ? `<div class="q-section"><div class="q-sec-label">Constraints</div>
       ${constraints.map(c=>`<div class="q-constraint">${c}</div>`).join('')}
     </div>` : ''}
   `;
@@ -391,10 +662,8 @@ function switchQTab(tab, el) {
   activeQTab = tab;
   document.querySelectorAll('.q-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-
-  if (tab === 'problem' && currentQuestion) {
-    renderProblemTab(currentQuestion);
-  } else if (tab === 'hint') {
+  if (tab === 'problem' && currentQuestion) renderProblemTab(currentQuestion);
+  else if (tab === 'hint') {
     document.getElementById('q-body').innerHTML = currentQuestion?.hint
       ? `<div class="q-hint">💡 ${currentQuestion.hint}</div>`
       : `<div class="output-empty" style="margin-top:40px;"><div class="output-empty-ico">🔍</div><div class="output-empty-t">No hint available</div></div>`;
@@ -402,17 +671,12 @@ function switchQTab(tab, el) {
     if (submissions.length === 0) {
       document.getElementById('q-body').innerHTML = `<div class="output-empty" style="margin-top:40px;"><div class="output-empty-ico">📋</div><div class="output-empty-t">No submissions yet — submit your code!</div></div>`;
     } else {
-      document.getElementById('q-body').innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          ${submissions.map((s,i)=>`
-            <div style="padding:12px;background:var(--card);border:1px solid ${s.passed?'rgba(74,222,128,.2)':'rgba(251,113,133,.2)'};border-radius:8px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                <span style="font-size:.78rem;font-weight:600;color:${s.passed?'var(--mint)':'var(--rose)'};">${s.passed?'✓ Accepted':'✕ Failed'}</span>
-                <span style="font-size:.68rem;color:var(--t3);">${s.time}</span>
-              </div>
-              <div style="font-size:.7rem;color:var(--t2);">${s.lang} · ${s.passedCount}/${s.totalCount} test cases</div>
-            </div>`).join('')}
-        </div>`;
+      document.getElementById('q-body').innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">
+        ${submissions.map(s=>`<div style="padding:12px;background:var(--card);border:1px solid ${s.passed?'rgba(74,222,128,.2)':'rgba(251,113,133,.2)'};border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;"><span style="font-weight:600;color:${s.passed?'var(--mint)':'var(--rose)'};">${s.passed?'✓ Accepted':'✕ Failed'}</span><span style="font-size:.68rem;">${s.time}</span></div>
+          <div style="font-size:.7rem;">${s.lang} · ${s.passedCount}/${s.totalCount} test cases</div>
+        </div>`).join('')}
+      </div>`;
     }
   }
 }
@@ -425,134 +689,37 @@ function switchOutTab(tab, el) {
   else renderConsole();
 }
 
-// ── MONACO EDITOR ─────────────────────────
+// ---------- MONACO EDITOR ----------
 function initMonaco() {
   require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
   require(['vs/editor/editor.main'], function () {
     monaco.editor.defineTheme('CrackIt', {
-      base: 'vs-dark',
-      inherit: true,
-      rules: [
-        { token: 'comment', foreground: '545e80', fontStyle: 'italic' },
-        { token: 'keyword', foreground: 'a78bfa' },
-        { token: 'string', foreground: 'fdba74' },
-        { token: 'number', foreground: 'fb7185' },
-        { token: 'type', foreground: '60a5fa' },
-      ],
-      colors: {
-        'editor.background': '#0f1117',
-        'editor.foreground': '#eef0f8',
-        'editorLineNumber.foreground': '#2a3350',
-        'editorLineNumber.activeForeground': '#f4c430',
-        'editor.selectionBackground': '#2a3350',
-        'editor.lineHighlightBackground': '#161b27',
-        'editorCursor.foreground': '#f4c430',
-        'editor.inactiveSelectionBackground': '#1c2333',
-      }
+      base: 'vs-dark', inherit: true,
+      rules: [{ token: 'comment', foreground: '545e80' }, { token: 'keyword', foreground: 'a78bfa' }],
+      colors: { 'editor.background': '#0f1117', 'editor.foreground': '#eef0f8', 'editorCursor.foreground': '#f4c430' }
     });
-
     editor = monaco.editor.create(document.getElementById('monaco-editor'), {
       value: getStarterCode('javascript'),
       language: 'javascript',
       theme: 'CrackIt',
       fontSize: 14,
       fontFamily: "'Space Mono', monospace",
-      lineNumbers: 'on',
       minimap: { enabled: false },
-      scrollBeyondLastLine: false,
-      automaticLayout: true,
-      tabSize: 2,
-      wordWrap: 'on',
-      padding: { top: 16, bottom: 16 },
+      automaticLayout: true
     });
   });
 }
 
 function getStarterCode(lang) {
   const starters = {
-    javascript: `// Write your solution here
-function solution(input) {
-  // Your code here
-  
-}
-
-// Test your solution
-console.log(solution("test input"));`,
-    python: `# Write your solution here
-def solution(input_data):
-    # Your code here
-    pass
-
-# Test your solution
-print(solution("test input"))`,
-    java: `// Write your solution here
-public class Solution {
-    public static String solve(String input) {
-        // Your code here
-        return "";
-    }
-    
-    public static void main(String[] args) {
-        System.out.println(solve("test input"));
-    }
-}`,
-    cpp: `#include <iostream>
-#include <string>
-using namespace std;
-
-// Write your solution here
-string solution(string input) {
-    // Your code here
-    return "";
-}
-
-int main() {
-    cout << solution("test input") << endl;
-    return 0;
-}`,
-    go: `package main
-
-import "fmt"
-
-// Write your solution here
-func solution(input string) string {
-    // Your code here
-    return ""
-}
-
-func main() {
-    fmt.Println(solution("test input"))
-}`,
-    typescript: `// Write your solution here
-function solution(input: string): any {
-  // Your code here
-  
-}
-
-// Test your solution
-console.log(solution("test input"));`,
-    rust: `// Write your solution here
-fn solution(input: &str) -> String {
-    // Your code here
-    String::new()
-}
-
-fn main() {
-    println!("{}", solution("test input"));
-}`,
-    csharp: `using System;
-
-// Write your solution here
-class Solution {
-    static string Solve(string input) {
-        // Your code here
-        return "";
-    }
-    
-    static void Main() {
-        Console.WriteLine(Solve("test input"));
-    }
-}`,
+    javascript: `// Write your solution here\nfunction solution(input) {\n  // Your code\n  return input;\n}`,
+    python: `# Write your solution here\ndef solution(input_data):\n    # Your code\n    return input_data`,
+    java: `// Write your solution here\npublic class Solution {\n    public static String solve(String input) {\n        // Your code\n        return input;\n    }\n}`,
+    cpp: `#include <string>\nusing namespace std;\n\nstring solution(string input) {\n    // Your code\n    return input;\n}`,
+    go: `package main\n\nfunc solution(input string) string {\n    // Your code\n    return input\n}`,
+    typescript: `// Write your solution here\nfunction solution(input: string): any {\n  // Your code\n  return input;\n}`,
+    rust: `fn solution(input: &str) -> String {\n    // Your code\n    input.to_string()\n}`,
+    csharp: `using System;\n\nclass Solution {\n    static string Solve(string input) {\n        // Your code\n        return input;\n    }\n}`
   };
   return starters[lang] || starters.javascript;
 }
@@ -565,53 +732,84 @@ function changeLanguage() {
   editor.setValue(getStarterCode(lang));
 }
 
-// ── RUN CODE ─────────────────────────────
+// ---------- CODE EXECUTION (Piston API) ----------
+async function executeCode(code, language, stdin) {
+  const langMap = {
+    javascript: 'javascript', python: 'python', java: 'java',
+    cpp: 'cpp', go: 'go', typescript: 'typescript',
+    rust: 'rust', csharp: 'csharp'
+  };
+  const pistonLang = langMap[language] || 'javascript';
+  const response = await fetch('https://emkc.org/api/v2/piston/execute', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      language: pistonLang,
+      version: '*',
+      files: [{ content: code }],
+      stdin: stdin
+    })
+  });
+  const data = await response.json();
+  if (data.run && data.run.output !== undefined) {
+    return { output: data.run.output.trim(), error: data.run.stderr || null };
+  } else {
+    throw new Error(data.message || 'Execution failed');
+  }
+}
+
+async function evaluateCode(code, language, examples) {
+  const results = [];
+  let capturedLog = '';
+  for (let i = 0; i < examples.length; i++) {
+    const ex = examples[i];
+    try {
+      const { output, error } = await executeCode(code, language, ex.input);
+      if (error) throw new Error(error);
+      const pass = output.trim() === ex.output.trim();
+      results.push({
+        id: i+1,
+        input: ex.input,
+        expected: ex.output,
+        got: output,
+        status: pass ? 'pass' : 'fail'
+      });
+      capturedLog += `Test ${i+1}: ${pass ? 'PASS' : 'FAIL'}\nOutput: ${output}\n\n`;
+    } catch (err) {
+      results.push({
+        id: i+1,
+        input: ex.input,
+        expected: ex.output,
+        got: `Error: ${err.message}`,
+        status: 'fail'
+      });
+      capturedLog += `Test ${i+1}: ERROR - ${err.message}\n\n`;
+    }
+  }
+  return { results, consoleLog: capturedLog };
+}
+
+// ---------- RUN & SUBMIT ----------
 async function runCode() {
   if (!editor) return;
   const code = editor.getValue();
   const lang = document.getElementById('lang-select').value;
-
   const runBtn = document.getElementById('run-btn');
   runBtn.disabled = true;
   runBtn.innerHTML = '<span class="spinner-sm"></span> Running…';
-
   consoleLog = '';
   testResults = [];
   renderTestResults();
-
-  // Use Judge0 API for code execution
-  // For now — simulate with AI evaluation
   try {
     const examples = currentQuestion?.examples || [];
-    if (examples.length === 0) {
-      consoleLog = '// No test cases available for this question\n// Submit to check your solution';
-      renderConsole();
-      switchOutTab('console', document.querySelectorAll('.output-tab')[1]);
-      return;
-    }
-
-    // Show running state
-    testResults = examples.map((e, i) => ({ id: i+1, input: e.input, expected: e.output, status: 'running' }));
+    if (examples.length === 0) throw new Error('No test cases');
+    testResults = examples.map((e,i) => ({ id: i+1, input: e.input, expected: e.output, status: 'running' }));
     renderTestResults();
-
-    // Call AI to evaluate code against examples
-    const res = await fetch('/api/evaluate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        code, language: lang,
-        examples: examples.slice(0, 3), // run first 3 examples
-        problem: currentQuestion.problem
-      })
-    });
-
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-
-    testResults = data.results;
-    consoleLog = data.console || '';
+    const { results, consoleLog: logs } = await evaluateCode(code, lang, examples);
+    testResults = results;
+    consoleLog = logs;
     renderTestResults();
-
+    renderConsole();
   } catch (err) {
     consoleLog = `Error: ${err.message}`;
     renderConsole();
@@ -622,67 +820,40 @@ async function runCode() {
   }
 }
 
-// ── SUBMIT CODE ───────────────────────────
 async function submitCode() {
   if (!editor) return;
   const code = editor.getValue();
   const lang = document.getElementById('lang-select').value;
-
   const submitBtn = document.getElementById('submit-btn');
   submitBtn.disabled = true;
   submitBtn.innerHTML = '<span class="spinner-sm"></span> Checking…';
-
   try {
     const examples = currentQuestion?.examples || [];
-
-    const res = await fetch('/api/evaluate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        code, language: lang,
-        examples,
-        problem: currentQuestion.problem,
-        isSubmit: true
-      })
-    });
-
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-
-    testResults = data.results;
-    consoleLog = data.console || '';
+    const { results, consoleLog: logs } = await evaluateCode(code, lang, examples);
+    testResults = results;
+    consoleLog = logs;
     renderTestResults();
-
-    const passed = data.results.filter(r => r.status === 'pass').length;
-    const total = data.results.length;
+    renderConsole();
+    const passed = results.filter(r => r.status === 'pass').length;
+    const total = results.length;
     const allPassed = passed === total;
-
-    // Save submission
-    const sub = {
-      passed: allPassed, lang, time: new Date().toLocaleTimeString(),
-      passedCount: passed, totalCount: total
-    };
-    submissions.unshift(sub);
-
-    if (allPassed) {
-      // Save to Supabase
-      if (currentUser) {
-        await sb.from('solve_history').insert({
-          user_id: currentUser.id,
-          question_id: currentQuestion.id,
-          difficulty: currentQuestion.difficulty,
-          solved_at: new Date().toISOString()
-        });
-        // Update badge counts
-        const field = currentQuestion.difficulty === 'easy' ? 'easy_solved' : currentQuestion.difficulty === 'medium' ? 'medium_solved' : 'hard_solved';
-        const { data: prof } = await sb.from('profiles').select(field).eq('id', currentUser.id).single();
-        if (prof) {
-          await sb.from('profiles').update({ [field]: (prof[field] || 0) + 1 }).eq('id', currentUser.id);
-        }
+    submissions.unshift({ passed: allPassed, lang, time: new Date().toLocaleTimeString(), passedCount: passed, totalCount: total });
+    if (allPassed && currentUser) {
+      await sb.from('solve_history').insert({
+        user_id: currentUser.id,
+        question_id: currentQuestion.id,
+        difficulty: currentQuestion.difficulty,
+        solved_at: new Date().toISOString()
+      });
+      const field = currentQuestion.difficulty === 'easy' ? 'easy_solved' : currentQuestion.difficulty === 'medium' ? 'medium_solved' : 'hard_solved';
+      const { data: prof } = await sb.from('profiles').select(field).eq('id', currentUser.id).single();
+      if (prof) {
+        await sb.from('profiles').update({ [field]: (prof[field] || 0) + 1 }).eq('id', currentUser.id);
       }
       showSolvedBanner(passed, total);
+    } else if (!allPassed) {
+      alert(`❌ ${passed}/${total} test cases passed. Try again.`);
     }
-
   } catch (err) {
     consoleLog = `Error: ${err.message}`;
     renderConsole();
@@ -692,16 +863,13 @@ async function submitCode() {
   }
 }
 
-// ── RENDER RESULTS ────────────────────────
 function renderTestResults() {
   const el = document.getElementById('output-body');
   if (activeOutTab !== 'testcases') return;
-
-  if (testResults.length === 0) {
+  if (!testResults.length) {
     el.innerHTML = `<div class="output-empty"><div class="output-empty-ico">▶</div><div class="output-empty-t">Run your code to see results</div></div>`;
     return;
   }
-
   el.innerHTML = `<div class="test-grid">${testResults.map(r => `
     <div class="test-case ${r.status}">
       <div class="tc-icon">${r.status==='pass'?'✅':r.status==='fail'?'❌':'⏳'}</div>
@@ -719,10 +887,9 @@ function renderConsole() {
   el.innerHTML = `<div class="console-out">${consoleLog || '// No output yet'}</div>`;
 }
 
-// ── SOLVED BANNER ─────────────────────────
 function showSolvedBanner(passed, total) {
   const banner = document.getElementById('solved-banner');
-  document.getElementById('sb-sub').textContent = `All ${total} test cases passed! Great work on "${currentQuestion?.title}".`;
+  document.getElementById('sb-sub').innerHTML = `All ${total} test cases passed! Great work on "${currentQuestion?.title}".`;
   document.getElementById('sb-stats').innerHTML = `
     <div class="sb-stat"><span class="sb-stat-n">${passed}/${total}</span><span class="sb-stat-l">Tests Passed</span></div>
     <div class="sb-stat"><span class="sb-stat-n">${formatTime(seconds)}</span><span class="sb-stat-l">Time Taken</span></div>
@@ -732,22 +899,12 @@ function showSolvedBanner(passed, total) {
 }
 
 function goBack() { window.location.href = '/index.html'; }
-
-// ── TIMER ─────────────────────────────────
-function startTimer() {
-  timerInterval = setInterval(() => {
-    seconds++;
-    document.getElementById('timer').textContent = formatTime(seconds);
-  }, 1000);
-}
+function startTimer() { timerInterval = setInterval(() => { seconds++; document.getElementById('timer').textContent = formatTime(seconds); }, 1000); }
 function stopTimer() { clearInterval(timerInterval); }
-function formatTime(s) {
-  const m = Math.floor(s / 60).toString().padStart(2,'0');
-  const sec = (s % 60).toString().padStart(2,'0');
-  return `${m}:${sec}`;
-}
+function formatTime(s) { const m = Math.floor(s / 60).toString().padStart(2,'0'); const sec = (s % 60).toString().padStart(2,'0'); return `${m}:${sec}`; }
+function showError(msg) { document.getElementById('q-body').innerHTML = `<div class="output-empty" style="margin-top:60px;"><div class="output-empty-ico">⚠️</div><div class="output-empty-t">${msg}</div></div>`; }
 
-// ── RESIZE HANDLE ─────────────────────────
+// Resize handle
 const handle = document.getElementById('resize-handle');
 const outputPanel = document.getElementById('output-panel');
 let isResizing = false;
@@ -760,11 +917,9 @@ document.addEventListener('mousemove', e => {
   if (newH > 80 && newH < 500) outputPanel.style.height = newH + 'px';
 });
 document.addEventListener('mouseup', () => { isResizing = false; document.body.style.cursor = ''; });
-
-// ── HELPERS ───────────────────────────────
-function showError(msg) {
-  document.getElementById('q-body').innerHTML = `<div class="output-empty" style="margin-top:60px;"><div class="output-empty-ico">⚠️</div><div class="output-empty-t">${msg}</div></div>`;
-}
+</script>
+</body>
+</html>
 </script>
 </body>
 </html>
