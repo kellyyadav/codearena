@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>CodeArena ⋆˙⟡ Battle. Grow. Conquer.</title>
+<title>Crack It ⋆˙⟡ Battle. Grow. Conquer.</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* ═══════════════ TOKENS ═══════════════ */
 :root {
@@ -562,7 +562,7 @@ footer {
 
 <!-- NAV -->
 <nav>
-  <div class="logo">CodeArena <span class="logo-star">⋆˙⟡</span></div>
+  <div class="logo">Crack It <span class="logo-star">⋆˙⟡</span></div>
   <div class="nav-center">
     <span class="nav-link" onclick="navTo('gen')">Generate</span>
     <span class="nav-link" onclick="navTo('battles')">Battle</span>
@@ -570,10 +570,8 @@ footer {
     <span class="nav-link" onclick="navTo('pricing')">Pricing</span>
   </div>
   <div class="nav-right" id="nav-auth">
-    <button id="manual-signout-btn" onclick="window.location.reload(); localStorage.clear(); sessionStorage.clear();" style="display:none;padding:5px 12px;background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;margin-left:8px;">Logout</button>
     <button class="btn btn-ghost" onclick="openModal()">Log in</button>
     <button class="btn btn-primary" onclick="openModal()">Start free ✦</button>
-    <button id="manual-signout-btn" onclick="localStorage.clear(); sessionStorage.clear(); window.location.reload();" style="display:none;padding:5px 12px;background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;margin-left:8px;">⟲ Logout</button>
   </div>
 </nav>
 
@@ -765,9 +763,7 @@ Or: My phone battery drains faster when I have more apps open..." rows="4"></tex
         <li><span class="ck">✓</span> Personal progress tracking</li>
         <li><span class="ck">✓</span> Full leaderboard access</li>
       </ul>
-      <button class="btn-pricing-p" id="free-plan-btn" onclick="currentUser ? alert('You are already on the Free plan! ✅') : openModal()">
-  <span id="free-plan-text">Get started free ✦</span>
-</button>
+      <button class="btn-price btn-price-pro" onclick="openModal()">Get started free ✦</button>
     </div>
     <div class="price-card" style="opacity:.7;">
       <div class="price-plan">Pro — Coming Soon</div>
@@ -796,7 +792,7 @@ Or: My phone battery drains faster when I have more apps open..." rows="4"></tex
 </section>
 
 <footer>
-  <div class="f-logo">CodeArena <span style="color:var(--star);">⋆˙⟡</span></div>
+  <div class="f-logo">Crack It <span style="color:var(--star);">⋆˙⟡</span></div>
   <div class="f-copy">Built for real coders. Powered by Supabase + Vercel.</div>
   <div class="f-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a></div>
 </footer>
@@ -844,17 +840,11 @@ async function signInGoogle(){
 }
 
 async function signOut(){
-  console.log('Sign out clicked!');
   await sb.auth.signOut();
-  console.log('Auth signout complete');
   currentUser = null;
-  showNavGuest();
-  showProgressLocked();
-  renderBadges(null);
-  loadQuestions();
-  console.log('UI updated');
-  alert('Signed out! Refresh page manually.');
+  window.location.reload();
 }
+
 sb.auth.onAuthStateChange(async(_, session)=>{
   if(session?.user){
     currentUser = session.user;
@@ -865,23 +855,11 @@ sb.auth.onAuthStateChange(async(_, session)=>{
     renderBadges(prof);
     loadUserGraphs(currentUser.id);
     loadQuestions();
-    loadStats();
-    loadLeaderboard();
-    // Unlock progress graphs immediately
-    setTimeout(() => {
-      const gp = document.getElementById('g-progress');
-      const gb = document.getElementById('g-battles');
-      if(gp && gp.innerHTML.includes('Log in to see')) {
-        gp.innerHTML = '<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">📊</div><div class="lock-t">No solves yet. Start solving questions!</div></div>';
-      }
-      if(gb && gb.innerHTML.includes('Log in to see')) {
-        gb.innerHTML = '<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">⚔️</div><div class="lock-t">No battles yet. Join your first battle!</div></div>';
-      }
-    }, 300);
   } else {
     currentUser = null;
     showNavGuest();
     renderBadges(null);
+    showProgressLocked();
   }
 });
 
@@ -919,25 +897,14 @@ function showNavUser(u){
   document.getElementById('nav-auth').innerHTML = `
     <span class="nav-uname">${name}</span>
     ${av ? `<img src="${av}" class="nav-avatar"/>` : `<div style="width:30px;height:30px;border-radius:50%;background:var(--card2);border:1.5px solid var(--star);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--star);">${name[0].toUpperCase()}</div>`}
-    <button onclick="event.preventDefault(); signOut(); return false;"style="padding:5px 12px;background:transparent;border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;">Sign out</button>`;
-  document.getElementById('manual-signout-btn').style.display = 'block';
-  
-  // Update pricing button
-  const freePlanBtn = document.getElementById('free-plan-btn');
-  if(freePlanBtn){
-    freePlanBtn.innerHTML = '<span style="opacity:0.7;">Your Current Plan ✓</span>';
-    freePlanBtn.style.cursor = 'default';
-    freePlanBtn.onclick = null;
-  }
+    <button onclick="signOut()" style="padding:5px 12px;background:transparent;border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;">Sign out</button>`;
 }
 function showNavGuest(){
   document.getElementById('nav-auth').innerHTML = `<button class="btn btn-ghost" onclick="openModal()">Log in</button><button class="btn btn-primary" onclick="openModal()">Start free ✦</button>`;
-  document.getElementById('manual-signout-btn').style.display = 'none';   // ✅
 }
 
 // ── AI QUESTION GENERATOR ────────────────
 async function generateQuestion(){
-  if(!currentUser){ openModal(); return; }
   const situation = document.getElementById('situation-input').value.trim();
   if(!situation){ alert('Please describe a situation first!'); return; }
 
@@ -1304,36 +1271,35 @@ sb.channel('rt')
   .subscribe();
 
 // ── INIT ─────────────────────────────────────
-// ── INIT ─────────────────────────────────────
 (async()=>{
-  // Handle OAuth hash
+  // Handle Google OAuth redirect
   if(window.location.hash.includes('access_token')){
     const p = new URLSearchParams(window.location.hash.substring(1));
-    await sb.auth.setSession({ 
-      access_token: p.get('access_token'), 
-      refresh_token: p.get('refresh_token')||'' 
-    });
-    window.location.hash = '';
-    window.location.reload(); // Force reload after OAuth
-    return;
+    const at = p.get('access_token');
+    const rt = p.get('refresh_token');
+    if(at){
+      await sb.auth.setSession({ access_token:at, refresh_token:rt||'' });
+      window.location.hash = '';
+      window.location.reload();
+      return;
+    }
   }
-  
-  const {data:{session}}=await sb.auth.getSession();
-  if(session?.user){
-    currentUser=session.user;
-    showNavUser(currentUser);
-    await upsertProfile(currentUser);
-    const prof = await getProfile(currentUser.id);
-    renderBadges(prof);
-    loadUserGraphs(currentUser.id);
-  } else {
-    showProgressLocked();
-    renderBadges(null);
-  }
+  try {
+    const {data:{session}}=await sb.auth.getSession();
+    if(session?.user){
+      currentUser=session.user;
+      showNavUser(currentUser);
+      await upsertProfile(currentUser);
+      const prof = await getProfile(currentUser.id);
+      renderBadges(prof);
+      loadUserGraphs(currentUser.id);
+    } else {
+      showProgressLocked();
+      renderBadges(null);
+    }
+  } catch(e){ showProgressLocked(); renderBadges(null); }
   await Promise.all([loadStats(),loadTicker(),loadBattles(),loadLeaderboard(),loadQuestions()]);
 })();
-
-  
 </script>
 </body>
 </html>
