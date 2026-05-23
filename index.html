@@ -1304,45 +1304,35 @@ sb.channel('rt')
   .subscribe();
 
 // ── INIT ─────────────────────────────────────
-
-(async () => {
-  // Handle OAuth redirect FIRST
-  if (window.location.hash.includes('access_token')) {
+// ── INIT ─────────────────────────────────────
+(async()=>{
+  // Handle OAuth hash
+  if(window.location.hash.includes('access_token')){
     const p = new URLSearchParams(window.location.hash.substring(1));
-    const at = p.get('access_token');
-    const rt = p.get('refresh_token');
-    if (at) {
-      await sb.auth.setSession({ access_token: at, refresh_token: rt || '' });
-      history.replaceState(null, '', window.location.pathname);
-      // Wait for session to be fully set
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
+    await sb.auth.setSession({ 
+      access_token: p.get('access_token'), 
+      refresh_token: p.get('refresh_token')||'' 
+    });
+    window.location.hash = '';
+    window.location.reload(); // Force reload after OAuth
+    return;
   }
-
-  // Then check session
-  try {
-    const { data: { session } = {} } = await sb.auth.getSession();
-    if (session?.user) {
-      currentUser = session.user;
-      try {
-        const { data: prof } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
-        renderBadges(prof);
-        loadUserGraphs(currentUser.id);
-      } catch (innerErr) {
-        renderBadges(null);
-        showProgressLocked();
-      }
-    } else {
-      showProgressLocked();
-      renderBadges(null);
-    }
-  } catch (e) {
+  
+  const {data:{session}}=await sb.auth.getSession();
+  if(session?.user){
+    currentUser=session.user;
+    showNavUser(currentUser);
+    await upsertProfile(currentUser);
+    const prof = await getProfile(currentUser.id);
+    renderBadges(prof);
+    loadUserGraphs(currentUser.id);
+  } else {
     showProgressLocked();
     renderBadges(null);
   }
-
-  await Promise.all([loadStats(), loadTicker(), loadBattles(), loadLeaderboard(), loadQuestions()]);
+  await Promise.all([loadStats(),loadTicker(),loadBattles(),loadLeaderboard(),loadQuestions()]);
 })();
+
   
 </script>
 </body>
