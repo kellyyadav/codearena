@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Crack It ⋆˙⟡ Battle. Grow. Conquer.</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ═══════════════ TOKENS ═══════════════ */
+:root {
+  --bg:       #0f1117;
+  --surface:  #161b27;
+  --card:     #1c2333;
+  --card2:    #212840;
+  --border:   #2a3350;
+  --border2:  #334066;
+
+  --star:     #f4c430;
+  --mint:     #4ade80;
+  --sky:      #60a5fa;
+  --lilac:    #a78bfa;
+  --rose:     #fb7185;
+  --peach:    #fdba74;
+  --teal:     #2dd4bf;
+
+  --t1: #eef0f8;
+  --t2: #8b93b0;
+  --t3: #545e80;
+
+  --r: 10px;
+  --r2: 16px;
+  --shadow: 0 2px 12px rgba(0,0,0,.35);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.45);
+}
+
+/* ═══════════════ RESET ═══════════════ */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body { background:var(--bg); color:var(--t1); font-family:'Space Grotesk',sans-serif; overflow-x:hidden; }
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+a { text-decoration:none; color:inherit; }
+
+/* ═══════════════ STARS BG ═══════════════ */
+#stars { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.star-el { position:absolute; border-radius:50%; animation:twinkle var(--dur,3s) var(--delay,0s) infinite ease-in-out; }
+@keyframes twinkle { 0%,100%{opacity:.15} 50%{opacity:.75} }
+
+/* ═══════════════ NAV ═══════════════ */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:300;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 40px; height:60px;
+  background:rgba(15,17,23,.92); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.logo {
+  font-family:'Syne',sans-serif; font-size:1.15rem; font-weight:800;
+  display:flex; align-items:center; gap:8px; color:var(--t1);
+  letter-spacing:-.01em;
+}
+.logo-star { color:var(--star); }
+.nav-center { display:flex; gap:4px; }
+.nav-link {
+  padding:6px 14px; border-radius:7px;
+  font-size:.82rem; font-weight:500; color:var(--t2);
+  transition:all .18s; cursor:pointer;
+}
+.nav-link:hover { background:var(--card); color:var(--t1); }
+.nav-link.active { background:var(--card); color:var(--t1); }
+.nav-right { display:flex; gap:8px; align-items:center; }
+.btn { cursor:pointer; border:none; font-family:'Space Grotesk',sans-serif; font-weight:600; transition:all .18s; }
+.btn-ghost {
+  padding:7px 18px; background:transparent;
+  border:1px solid var(--border2); color:var(--t2);
+  border-radius:8px; font-size:.82rem;
+}
+.btn-ghost:hover { border-color:var(--t2); color:var(--t1); }
+.btn-primary {
+  padding:7px 18px;
+  background:var(--star); color:#0f1117;
+  border-radius:8px; font-size:.82rem;
+}
+.btn-primary:hover { filter:brightness(1.08); transform:translateY(-1px); }
+
+/* ═══════════════ HERO ═══════════════ */
+.hero {
+  position:relative; z-index:1;
+  min-height:100vh; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:80px 40px 60px; text-align:center;
+}
+.hero-tag {
+  display:inline-flex; align-items:center; gap:7px;
+  background:var(--card); border:1px solid var(--border2);
+  border-radius:100px; padding:5px 14px;
+  font-size:.72rem; font-weight:500; color:var(--t2);
+  margin-bottom:28px;
+  animation:fadeUp .7s ease both;
+}
+.htag-dot { width:6px; height:6px; border-radius:50%; background:var(--mint); box-shadow:0 0 6px var(--mint); animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+
+.hero-title {
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:clamp(2.4rem,5.5vw,4.8rem);
+  line-height:1.08; letter-spacing:-.03em;
+  margin-bottom:20px;
+  animation:fadeUp .8s .08s ease both;
+}
+.ht-yellow { color:var(--star); }
+.ht-white { color:var(--t1); }
+.ht-dim { color:var(--t2); }
+
+.hero-sub {
+  max-width:520px; font-size:1.02rem; color:var(--t2);
+  line-height:1.75; margin-bottom:36px;
+  animation:fadeUp .85s .16s ease both;
+}
+.hero-btns {
+  display:flex; gap:12px; justify-content:center; flex-wrap:wrap;
+  margin-bottom:60px;
+  animation:fadeUp .9s .24s ease both;
+}
+.btn-hero-p {
+  display:flex; align-items:center; gap:8px;
+  padding:12px 28px; background:var(--star); color:#0f1117;
+  border:none; border-radius:10px;
+  font-family:'Space Grotesk',sans-serif; font-size:.92rem; font-weight:700;
+  cursor:pointer; transition:all .2s;
+  box-shadow:0 4px 20px rgba(244,196,48,.25);
+}
+.btn-hero-p:hover { filter:brightness(1.07); transform:translateY(-2px); box-shadow:0 6px 26px rgba(244,196,48,.35); }
+.btn-hero-s {
+  display:flex; align-items:center; gap:8px;
+  padding:12px 28px; background:var(--card);
+  border:1px solid var(--border2); color:var(--t1);
+  border-radius:10px; font-family:'Space Grotesk',sans-serif;
+  font-size:.92rem; font-weight:600; cursor:pointer; transition:all .2s;
+}
+.btn-hero-s:hover { border-color:var(--t2); transform:translateY(-1px); }
+
+/* ═══════════════ PIXEL DECORATION ═══════════════ */
+.pixel-row {
+  display:flex; gap:6px; justify-content:center;
+  margin-bottom:8px;
+  animation:fadeUp 1s .35s ease both;
+}
+.px { width:10px; height:10px; border-radius:2px; }
+
+/* ═══════════════ STAT BAR ═══════════════ */
+.stat-bar {
+  position:relative; z-index:1;
+  display:flex; border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+  background:var(--surface);
+}
+.sv { flex:1; text-align:center; padding:22px 16px; }
+.sv + .sv { border-left:1px solid var(--border); }
+.sn {
+  font-family:'Space Mono',monospace; font-size:1.9rem; font-weight:700;
+  color:var(--t1); display:block;
+}
+.sl { font-size:.72rem; font-weight:500; color:var(--t2); margin-top:4px; letter-spacing:.04em; }
+
+/* ═══════════════ SECTION ═══════════════ */
+.section { position:relative; z-index:1; padding:80px 40px; }
+.sec-label {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:.72rem; font-weight:600; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--t2); margin-bottom:12px;
+}
+.sec-title {
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:clamp(1.6rem,2.8vw,2.4rem); letter-spacing:-.02em;
+  color:var(--t1); margin-bottom:14px;
+}
+.sec-sub { font-size:.95rem; color:var(--t2); line-height:1.72; max-width:480px; }
+
+/* ═══════════════ CARD ═══════════════ */
+.card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--r2); padding:24px;
+  box-shadow:var(--shadow);
+}
+.card-hover { transition:transform .22s, box-shadow .22s, border-color .22s; }
+.card-hover:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:var(--border2); }
+
+/* ═══════════════ CHIP ═══════════════ */
+.chip {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:3px 9px; border-radius:100px;
+  font-size:.65rem; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
+}
+.chip-yellow { background:rgba(244,196,48,.12); color:var(--star); border:1px solid rgba(244,196,48,.2); }
+.chip-mint { background:rgba(74,222,128,.1); color:var(--mint); border:1px solid rgba(74,222,128,.18); }
+.chip-rose { background:rgba(251,113,133,.1); color:var(--rose); border:1px solid rgba(251,113,133,.18); }
+.chip-sky { background:rgba(96,165,250,.1); color:var(--sky); border:1px solid rgba(96,165,250,.18); }
+.chip-lilac { background:rgba(167,139,250,.1); color:var(--lilac); border:1px solid rgba(167,139,250,.18); }
+
+/* ═══════════════ AI QUESTION GEN ═══════════════ */
+.qgen-wrap {
+  max-width:760px; margin:0 auto;
+}
+.qgen-box {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--r2); overflow:hidden;
+  box-shadow:var(--shadow-lg);
+}
+.qgen-top {
+  display:flex; align-items:center; gap:10px;
+  padding:16px 20px; border-bottom:1px solid var(--border);
+  background:var(--surface);
+}
+.qgen-dots { display:flex; gap:6px; }
+.qgen-dot { width:11px; height:11px; border-radius:50%; }
+.qgen-title { font-size:.8rem; font-weight:600; color:var(--t2); margin-left:4px; }
+.qgen-body { padding:24px; }
+.qgen-label { font-size:.72rem; font-weight:600; color:var(--t2); letter-spacing:.06em; text-transform:uppercase; margin-bottom:8px; }
+.qgen-textarea {
+  width:100%; background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r); padding:14px 16px;
+  color:var(--t1); font-family:'Space Grotesk',sans-serif; font-size:.9rem;
+  line-height:1.6; resize:none; outline:none; transition:border-color .18s;
+  min-height:90px;
+}
+.qgen-textarea:focus { border-color:var(--star); }
+.qgen-textarea::placeholder { color:var(--t3); }
+.qgen-options { display:flex; gap:8px; margin:14px 0; flex-wrap:wrap; }
+.lang-select {
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--t1); font-family:'Space Grotesk',sans-serif; font-size:.82rem;
+  padding:7px 12px; border-radius:8px; outline:none; cursor:pointer;
+  transition:border-color .18s;
+}
+.lang-select:focus { border-color:var(--star); }
+.diff-btn {
+  padding:6px 14px; border-radius:7px; border:1px solid var(--border);
+  background:transparent; color:var(--t2);
+  font-family:'Space Grotesk',sans-serif; font-size:.78rem; font-weight:600;
+  cursor:pointer; transition:all .15s;
+}
+.diff-btn.active-easy { background:rgba(74,222,128,.12); border-color:rgba(74,222,128,.3); color:var(--mint); }
+.diff-btn.active-medium { background:rgba(244,196,48,.1); border-color:rgba(244,196,48,.25); color:var(--star); }
+.diff-btn.active-hard { background:rgba(251,113,133,.1); border-color:rgba(251,113,133,.25); color:var(--rose); }
+.diff-btn:hover { border-color:var(--border2); color:var(--t1); }
+
+.qgen-submit {
+  width:100%; padding:12px; border:none; border-radius:9px;
+  background:var(--star); color:#0f1117;
+  font-family:'Space Grotesk',sans-serif; font-size:.88rem; font-weight:700;
+  cursor:pointer; transition:all .2s; margin-top:4px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.qgen-submit:hover { filter:brightness(1.08); }
+.qgen-submit:disabled { opacity:.5; cursor:not-allowed; filter:none; }
+
+/* Result area */
+.qgen-result { margin-top:20px; }
+.qresult-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r); padding:20px;
+}
+.qresult-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1.05rem; margin-bottom:10px; color:var(--t1); }
+.qresult-body { font-size:.88rem; color:var(--t2); line-height:1.75; white-space:pre-wrap; }
+.qresult-actions { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+.btn-action {
+  padding:8px 18px; border-radius:8px; font-family:'Space Grotesk',sans-serif;
+  font-size:.8rem; font-weight:600; cursor:pointer; transition:all .18s; border:none;
+}
+.btn-publish { background:var(--mint); color:#0f1117; }
+.btn-publish:hover { filter:brightness(1.08); }
+.btn-refine { background:var(--card2); color:var(--t1); border:1px solid var(--border2); }
+.btn-refine:hover { border-color:var(--t2); }
+
+.invalid-msg {
+  background:rgba(251,113,133,.08); border:1px solid rgba(251,113,133,.2);
+  border-radius:var(--r); padding:16px 18px;
+  font-size:.86rem; color:var(--rose); line-height:1.65;
+}
+.invalid-suggestions { margin-top:12px; display:flex; flex-direction:column; gap:6px; }
+.sug-btn {
+  padding:7px 14px; border-radius:7px; background:var(--card2);
+  border:1px solid var(--border2); color:var(--t2);
+  font-size:.78rem; font-weight:500; cursor:pointer; transition:all .15s;
+  text-align:left;
+}
+.sug-btn:hover { border-color:var(--star); color:var(--star); background:rgba(244,196,48,.06); }
+
+.spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(15,17,23,.3); border-top-color:#0f1117; border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* ═══════════════ HOW IT WORKS ═══════════════ */
+.how-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:44px; }
+.how-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--r2); padding:28px 22px;
+  position:relative; overflow:hidden;
+  transition:transform .22s, border-color .22s;
+}
+.how-card:hover { transform:translateY(-3px); border-color:var(--border2); }
+.how-num {
+  font-family:'Space Mono',monospace; font-size:2.8rem; font-weight:700;
+  color:rgba(255,255,255,.04); position:absolute; top:12px; right:16px;
+}
+.how-icon { font-size:1.6rem; margin-bottom:14px; }
+.how-t { font-family:'Syne',sans-serif; font-size:.95rem; font-weight:700; margin-bottom:8px; }
+.how-d { font-size:.83rem; color:var(--t2); line-height:1.68; }
+
+/* ═══════════════ BATTLE ARENA ═══════════════ */
+.battle-outer { max-width:900px; margin:44px auto 0; }
+.battle-row {
+  display:grid; grid-template-columns:1fr 52px 1fr;
+  gap:14px; align-items:center; margin-bottom:14px;
+}
+.player-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--r2); padding:20px;
+}
+.player-card.left { border-left:2px solid var(--mint); }
+.player-card.right { border-left:2px solid var(--rose); }
+.ph { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.pav-img { width:36px; height:36px; border-radius:50%; object-fit:cover; }
+.pav-init {
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Space Mono',monospace; font-size:.9rem; font-weight:700;
+}
+.p-name { font-size:.88rem; font-weight:600; color:var(--t1); }
+.code-area {
+  background:var(--bg); border-radius:8px; padding:12px 14px;
+  font-family:'Space Mono',monospace; font-size:.66rem;
+  line-height:1.82; color:#6b7a96; min-height:100px;
+}
+.kw{color:var(--lilac);}.fn{color:var(--sky);}.st{color:var(--peach);}
+.pbar { height:3px; background:rgba(255,255,255,.05); border-radius:2px; margin-top:12px; overflow:hidden; }
+.pf { height:100%; border-radius:2px; }
+.vs-circle {
+  width:52px; height:52px; border-radius:50%;
+  background:var(--card2); border:1px solid var(--border2);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Space Mono',monospace; font-size:.82rem; font-weight:700; color:var(--t2);
+}
+.battle-q {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r); padding:16px 20px;
+  display:flex; align-items:flex-start; gap:12px;
+}
+.bq-text { font-size:.86rem; line-height:1.65; }
+
+/* ═══════════════ FIND MATCH ═══════════════ */
+.match-box {
+  max-width:480px; margin:44px auto 0;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--r2); padding:32px;
+  text-align:center;
+}
+.match-icon { font-size:2.6rem; margin-bottom:16px; }
+.match-title { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:8px; }
+.match-sub { font-size:.84rem; color:var(--t2); line-height:1.65; margin-bottom:24px; }
+.btn-match {
+  width:100%; padding:13px; border:none; border-radius:9px;
+  background:var(--star); color:#0f1117;
+  font-family:'Space Grotesk',sans-serif; font-size:.9rem; font-weight:700;
+  cursor:pointer; transition:all .2s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.btn-match:hover { filter:brightness(1.08); transform:translateY(-1px); }
+.btn-match:disabled { opacity:.5; cursor:default; filter:none; transform:none; }
+.searching-anim { display:flex; align-items:center; gap:10px; color:var(--t2); font-size:.85rem; }
+.search-dot { width:8px; height:8px; border-radius:50%; background:var(--star); animation:sdot 1.2s infinite; }
+.search-dot:nth-child(2){animation-delay:.15s;} .search-dot:nth-child(3){animation-delay:.3s;}
+@keyframes sdot{0%,60%,100%{transform:scale(.6);opacity:.4}30%{transform:scale(1);opacity:1}}
+
+/* ═══════════════ BADGES ═══════════════ */
+.badges-row { display:flex; justify-content:center; gap:20px; margin-top:44px; flex-wrap:wrap; }
+.badge-card {
+  width:180px; padding:30px 18px; border-radius:var(--r2); text-align:center;
+  transition:transform .22s; cursor:default;
+}
+.badge-card:hover { transform:translateY(-6px); }
+.bcard-w { background:linear-gradient(160deg,#161e2e,#1a2435); border:1px solid rgba(96,165,250,.2); }
+.bcard-e { background:linear-gradient(160deg,#141e18,#182019); border:1px solid rgba(74,222,128,.2); }
+.bcard-d { background:linear-gradient(160deg,#1e1911,#1d1810); border:1px solid rgba(244,196,48,.22); }
+.b-ico { font-size:2.8rem; margin-bottom:12px; display:block; }
+.b-name { font-family:'Syne',sans-serif; font-size:.88rem; font-weight:800; letter-spacing:.08em; margin-bottom:6px; }
+.bcard-w .b-name{color:var(--sky);} .bcard-e .b-name{color:var(--mint);} .bcard-d .b-name{color:var(--star);}
+.b-req { font-size:.72rem; color:var(--t2); line-height:1.5; }
+
+/* ═══════════════ LEADERBOARD ═══════════════ */
+.lb-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:44px; }
+.lb-head { display:flex; align-items:center; gap:10px; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+.lb-ht { font-size:.84rem; font-weight:700; }
+.lb-hs { font-size:.7rem; color:var(--t2); margin-top:1px; }
+.lb-row { display:flex; align-items:center; gap:10px; padding:8px 6px; border-bottom:1px solid rgba(255,255,255,.03); border-radius:6px; transition:background .15s; }
+.lb-row:hover { background:rgba(255,255,255,.02); }
+.lb-rk { font-family:'Space Mono',monospace; font-size:.72rem; font-weight:700; width:22px; color:var(--t3); }
+.lb-rk.g{color:#ffd700;}.lb-rk.s{color:#b0b8c8;}.lb-rk.b{color:#cd7f32;}
+.lb-un { flex:1; font-size:.84rem; font-weight:500; }
+.lb-sc { font-family:'Space Mono',monospace; font-size:.72rem; color:var(--sky); }
+
+/* ═══════════════ PROGRESS ═══════════════ */
+.prog-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:44px; }
+.prog-head { margin-bottom:4px; font-size:.84rem; font-weight:600; }
+.prog-sub { font-size:.7rem; color:var(--t2); margin-bottom:18px; }
+.graph-locked {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:160px; gap:8px;
+  background:rgba(0,0,0,.15); border-radius:9px; border:1px dashed var(--border);
+}
+.lock-ico { font-size:1.8rem; opacity:.3; }
+.lock-t { font-size:.72rem; color:var(--t2); text-align:center; max-width:180px; line-height:1.5; }
+
+/* ═══════════════ PRICING ═══════════════ */
+.price-grid { display:flex; justify-content:center; gap:18px; margin-top:44px; flex-wrap:wrap; }
+.price-card {
+  width:272px; background:var(--card); border:1px solid var(--border);
+  border-radius:var(--r2); padding:32px 26px; position:relative; overflow:hidden;
+  transition:transform .22s;
+}
+.price-card:hover { transform:translateY(-3px); }
+.price-card.featured { border-color:var(--star); box-shadow:0 0 28px rgba(244,196,48,.1); }
+.price-card.featured::before { content:'⋆ POPULAR'; position:absolute; top:12px; right:12px; background:var(--star); color:#0f1117; font-size:.58rem; font-weight:700; letter-spacing:.1em; padding:3px 8px; border-radius:4px; }
+.price-plan { font-size:.68rem; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--t2); margin-bottom:12px; }
+.price-amt { font-family:'Space Mono',monospace; font-size:2.4rem; font-weight:700; margin-bottom:6px; color:var(--t1); }
+.price-amt sup { font-size:1rem; vertical-align:top; margin-top:8px; display:inline-block; }
+.price-amt .per { font-size:.72rem; color:var(--t2); font-family:'Space Grotesk'; font-weight:400; }
+.price-desc { font-size:.8rem; color:var(--t2); line-height:1.6; margin-bottom:22px; min-height:42px; }
+.price-feats { list-style:none; margin-bottom:22px; }
+.price-feats li { font-size:.8rem; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.04); display:flex; align-items:center; gap:7px; color:var(--t2); }
+.price-feats .ck { color:var(--mint); }
+.btn-price { width:100%; padding:11px; border-radius:8px; font-family:'Space Grotesk',sans-serif; font-size:.8rem; font-weight:700; cursor:pointer; transition:all .18s; border:none; }
+.btn-price-free { background:var(--card2); color:var(--t1); border:1px solid var(--border2); }
+.btn-price-free:hover { border-color:var(--t2); }
+.btn-price-pro { background:var(--star); color:#0f1117; }
+.btn-price-pro:hover { filter:brightness(1.08); transform:translateY(-1px); }
+.rp-note { margin-top:10px; font-size:.66rem; color:var(--t2); display:flex; align-items:center; justify-content:center; gap:5px; }
+.rp-chip { padding:2px 6px; background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:3px; font-weight:700; color:#528ff5; font-size:.62rem; }
+
+/* ═══════════════ BADGE SHARE ═══════════════ */
+.badge-card{position:relative;}
+.badge-earned{opacity:1;}
+.badge-locked{opacity:.45;filter:grayscale(.4);}
+.badge-share-btn{
+  margin-top:14px; width:100%; padding:8px 12px;
+  background:#0a66c2; border:none; border-radius:8px;
+  color:#fff; font-family:'Space Grotesk',sans-serif;
+  font-size:.74rem; font-weight:700; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  transition:all .18s;
+}
+.badge-share-btn:hover{background:#0958a8;transform:translateY(-1px);}
+.badge-lock-label{
+  margin-top:12px; font-size:.7rem; color:var(--t3);
+  display:flex; align-items:center; justify-content:center; gap:5px;
+}
+.badge-progress-bar{
+  height:3px; background:rgba(255,255,255,.07);
+  border-radius:2px; margin-top:10px; overflow:hidden;
+}
+.badge-progress-fill{height:100%;border-radius:2px;transition:width .6s;}
+
+/* ═══════════════ LANGS ═══════════════ */
+.lang-wrap { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:38px; }
+.lang-chip {
+  padding:6px 15px; background:var(--card); border:1px solid var(--border);
+  border-radius:100px; font-family:'Space Mono',monospace; font-size:.72rem; color:var(--t2);
+  transition:all .18s; cursor:default;
+}
+.lang-chip:hover { border-color:var(--star); color:var(--star); background:rgba(244,196,48,.05); }
+
+/* ═══════════════ MODAL ═══════════════ */
+#modal {
+  position:fixed; inset:0; z-index:500;
+  display:none; align-items:center; justify-content:center;
+  background:rgba(5,7,14,.8); backdrop-filter:blur(14px);
+}
+#modal.open { display:flex; }
+.modal-box {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--r2); padding:44px 36px; max-width:400px; width:100%;
+  text-align:center; box-shadow:var(--shadow-lg); position:relative;
+}
+.modal-close { position:absolute; top:14px; right:16px; background:none; border:none; color:var(--t2); font-size:1.1rem; cursor:pointer; }
+.modal-emo { font-size:2.4rem; margin-bottom:14px; }
+.modal-title { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:800; margin-bottom:8px; }
+.modal-sub { font-size:.84rem; color:var(--t2); line-height:1.65; margin-bottom:26px; }
+.btn-google {
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  width:100%; padding:13px; background:#fff; color:#1a1a1a;
+  border:none; border-radius:9px; font-family:'Space Grotesk',sans-serif;
+  font-size:.9rem; font-weight:700; cursor:pointer; transition:all .2s;
+}
+.btn-google:hover { transform:translateY(-2px); box-shadow:0 8px 26px rgba(0,0,0,.4); }
+
+/* ═══════════════ EMPTY ═══════════════ */
+.empty { display:flex; flex-direction:column; align-items:center; padding:36px 16px; gap:9px; text-align:center; }
+.empty-ico { font-size:2rem; opacity:.3; }
+.empty-t { font-size:.8rem; font-weight:600; color:var(--t2); font-family:'Syne',sans-serif; }
+.empty-d { font-size:.74rem; color:var(--t3); max-width:240px; line-height:1.6; }
+
+/* ═══════════════ TICKER ═══════════════ */
+.ticker-wrap {
+  position:relative; z-index:1; overflow:hidden;
+  background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+  padding:9px 0; margin-top:60px;
+}
+.t-scroll { display:flex; gap:48px; width:max-content; animation:tick 26s linear infinite; }
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ti { white-space:nowrap; font-size:.72rem; font-family:'Space Mono',monospace; color:var(--t2); display:flex; align-items:center; gap:7px; }
+.tdot { width:6px; height:6px; border-radius:50%; background:var(--mint); box-shadow:0 0 5px var(--mint); }
+.twin { color:var(--mint); font-weight:700; }
+.t-empty { padding:0 40px; font-size:.72rem; font-family:'Space Mono',monospace; color:var(--t2); }
+
+/* ═══════════════ FOOTER ═══════════════ */
+footer {
+  position:relative; z-index:1;
+  padding:32px 40px; border-top:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+}
+.f-logo { font-family:'Syne',sans-serif; font-size:.95rem; font-weight:800; display:flex; align-items:center; gap:6px; }
+.f-copy { font-size:.73rem; color:var(--t2); }
+.f-links { display:flex; gap:16px; }
+.f-links a { font-size:.73rem; color:var(--t2); transition:color .15s; }
+.f-links a:hover { color:var(--t1); }
+
+/* ═══════════════ NAV USER ═══════════════ */
+.nav-avatar { width:30px; height:30px; border-radius:50%; border:1.5px solid var(--border2); object-fit:cover; cursor:pointer; }
+.nav-uname { font-size:.8rem; font-weight:600; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+@media(max-width:768px){
+  nav{padding:0 16px;}.nav-center{display:none;}.section{padding:56px 16px;}
+  .how-grid,.lb-grid,.prog-grid,.battle-row{grid-template-columns:1fr;}
+  .stat-bar{flex-direction:column;}.sv+.sv{border-left:none;border-top:1px solid var(--border);}
+  .vs-circle{display:none;}.hero{padding:80px 16px 50px;}
+}
+</style>
+</head>
+<body>
+
+<!-- STARS -->
+<div id="stars"></div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-emo">⋆˙⟡</div>
+    <div class="modal-title">Join the Arena</div>
+    <p class="modal-sub">Sign in with Google to generate questions, battle real players, and track your progress.</p>
+    <button class="btn-google" onclick="signInGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.8 2.5 30.3 0 24 0 14.6 0 6.6 5.3 2.7 13.1l7.9 6.1C12.5 13 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.2-.4-4.7H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.3z"/><path fill="#FBBC05" d="M10.6 28.9c-.6-1.6-.9-3.3-.9-5.1s.3-3.5.9-5.1L2.7 12.6C1 16 0 19.9 0 24s1 8 2.7 11.4l7.9-6.5z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.2 1.5-5 2.3-8.4 2.3-6.2 0-11.5-4.2-13.4-9.8l-7.9 6.1C6.6 42.7 14.6 48 24 48z"/></svg>
+      Continue with Google
+    </button>
+    <p style="margin-top:16px;font-size:.68rem;color:var(--t3);">No fake data. Your real journey starts here.</p>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Crack It <span class="logo-star">⋆˙⟡</span></div>
+  <div class="nav-center">
+    <span class="nav-link" onclick="navTo('gen')">Generate</span>
+    <span class="nav-link" onclick="navTo('battles')">Battle</span>
+    <span class="nav-link" onclick="navTo('leaderboard')">Leaderboard</span>
+    <span class="nav-link" onclick="navTo('pricing')">Pricing</span>
+  </div>
+  <div class="nav-right" id="nav-auth">
+    <button class="btn btn-ghost" onclick="openModal()">Log in</button>
+    <button class="btn btn-primary" onclick="openModal()">Start free ✦</button>
+  </div>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker-wrap"><div id="ticker-inner"><span class="t-empty">Loading…</span></div></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag"><span class="htag-dot"></span> Real questions · Real players · Real battles</div>
+  <h1 class="hero-title">
+    <span class="ht-yellow">Turn any situation</span><br/>
+    <span class="ht-white">into a coding battle</span>
+  </h1>
+  <p class="hero-sub">Describe something that happened today — AI turns it into a real coding challenge. Then fight a live opponent to solve it first. ⋆</p>
+  <div class="hero-btns">
+    <button class="btn-hero-p" onclick="navTo('gen')">✦ Generate a Question</button>
+    <button class="btn-hero-s" onclick="navTo('battles')">⚔ Watch Live Battles</button>
+  </div>
+  <!-- Pixel deco -->
+  <div class="pixel-row">
+    <div class="px" style="background:var(--star)"></div>
+    <div class="px" style="background:var(--mint)"></div>
+    <div class="px" style="background:var(--lilac)"></div>
+    <div class="px" style="background:var(--rose)"></div>
+    <div class="px" style="background:var(--sky)"></div>
+    <div class="px" style="background:var(--teal)"></div>
+    <div class="px" style="background:var(--peach)"></div>
+    <div class="px" style="background:var(--star)"></div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stat-bar">
+  <div class="sv"><span class="sn" id="st-q">—</span><span class="sl">Questions Generated</span></div>
+  <div class="sv"><span class="sn" id="st-p">—</span><span class="sl">Players Joined</span></div>
+  <div class="sv"><span class="sn" id="st-b">—</span><span class="sl">Battles Fought</span></div>
+  <div class="sv"><span class="sn">16</span><span class="sl">Languages</span></div>
+</div>
+
+<!-- AI QUESTION GENERATOR -->
+<section class="section" id="gen">
+  <div style="max-width:760px;margin:0 auto;">
+    <span class="sec-label">✦ AI Question Generator</span>
+    <h2 class="sec-title">Describe a real situation. Get a coding question.</h2>
+    <p class="sec-sub" style="margin-bottom:36px;">Anything you saw, experienced, or imagined — the AI will try to turn it into a solvable coding problem. If it can't, it tells you exactly why and how to fix it.</p>
+    <div class="qgen-wrap">
+      <div class="qgen-box">
+        <div class="qgen-top">
+          <div class="qgen-dots">
+            <div class="qgen-dot" style="background:#ff5f57"></div>
+            <div class="qgen-dot" style="background:#febc2e"></div>
+            <div class="qgen-dot" style="background:#28c840"></div>
+          </div>
+          <span class="qgen-title">question-generator.arena</span>
+        </div>
+        <div class="qgen-body">
+          <div class="qgen-label">Describe a situation or observation</div>
+          <textarea class="qgen-textarea" id="situation-input" placeholder="e.g. I went to a printing shop today. There were 4 kids, every other kid was printing for their friend too. How many total prints happened?
+
+Or: At a traffic light, cars arrive randomly. How would you figure out the average wait time?
+
+Or: My phone battery drains faster when I have more apps open..." rows="4"></textarea>
+
+          <div class="qgen-options">
+            <select class="lang-select" id="lang-select">
+              <option value="any">Any Language</option>
+              <option value="python">Python</option>
+              <option value="javascript">JavaScript</option>
+              <option value="java">Java</option>
+              <option value="cpp">C++</option>
+              <option value="go">Go</option>
+              <option value="typescript">TypeScript</option>
+              <option value="rust">Rust</option>
+              <option value="csharp">C#</option>
+              <option value="ruby">Ruby</option>
+              <option value="swift">Swift</option>
+              <option value="kotlin">Kotlin</option>
+            </select>
+            <button class="diff-btn active-easy" id="diff-easy" onclick="setDiff('easy')">Easy</button>
+            <button class="diff-btn" id="diff-medium" onclick="setDiff('medium')">Medium</button>
+            <button class="diff-btn" id="diff-hard" onclick="setDiff('hard')">Hard</button>
+          </div>
+
+          <button class="qgen-submit" id="gen-btn" onclick="generateQuestion()">
+            <span id="gen-btn-text">✦ Generate Question</span>
+          </button>
+
+          <div class="qgen-result" id="gen-result" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div style="text-align:center;max-width:580px;margin:0 auto;">
+    <span class="sec-label">⟡ How It Works</span>
+    <h2 class="sec-title">From real life to the leaderboard</h2>
+  </div>
+  <div class="how-grid" style="max-width:900px;margin:44px auto 0;">
+    <div class="how-card"><div class="how-num">01</div><div class="how-icon">💬</div><div class="how-t">Describe Any Situation</div><p class="how-d">Saw something interesting? Had a math moment? Describe it in plain English. AI converts it into a proper coding challenge with examples and constraints.</p></div>
+    <div class="how-card"><div class="how-num">02</div><div class="how-icon">⚔️</div><div class="how-t">Fight a Live Opponent</div><p class="how-d">Find an active player and challenge them. Both see the same question. Both code live. Whoever solves it first wins the round and earns XP.</p></div>
+    <div class="how-card"><div class="how-num">03</div><div class="how-icon">🏆</div><div class="how-t">Rank Up & Show Off</div><p class="how-d">Win battles → earn Warrior, Eagle, Divine badges. Share on LinkedIn. Recruiters see real skill signals, not just "I completed a course."</p></div>
+  </div>
+</section>
+
+<!-- LIVE BATTLES -->
+<section class="section" id="battles">
+  <div style="max-width:900px;margin:0 auto;">
+    <span class="sec-label">⚔ Live Battle Arena</span>
+    <h2 class="sec-title">Active Duels Right Now</h2>
+    <p class="sec-sub">Real players, real questions. If nobody's fighting, you'll see that — no fakes.</p>
+    <div id="battles-container"></div>
+
+    <!-- FIND MATCH -->
+    <div class="match-box" id="match-box">
+      <div class="match-icon">🎮</div>
+      <div class="match-title">Ready to Battle?</div>
+      <p class="match-sub">Click below to enter the matchmaking queue. You'll be paired with the next available active player.</p>
+      <div id="match-btn-area">
+        <button class="btn-match" onclick="findMatch()">⚔ Find Opponent</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BADGES -->
+<section class="section" style="text-align:center;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <span class="sec-label">˙⟡ Rank System</span>
+  <h2 class="sec-title">Earn Your Title</h2>
+  <p class="sec-sub" style="margin:0 auto;max-width:420px;">Solve real questions in real battles. Unlock badges. Share them anywhere.</p>
+  <div class="badges-row" id="badges-row">
+    <!-- filled by renderBadges() based on login state -->
+  </div>
+</section>
+
+<!-- QUESTIONS LIST -->
+<section class="section" id="questions-list">
+  <div style="max-width:860px;margin:0 auto;">
+    <span class="sec-label">✦ Questions from Community</span>
+    <h2 class="sec-title">Pick a Question & Solve</h2>
+    <p class="sec-sub">Generated by real players. Solve them to earn badges and climb the leaderboard.</p>
+    <div id="questions-container" style="margin-top:32px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;"></div>
+  </div>
+</section>
+
+<!-- LEADERBOARD -->
+<section class="section" id="leaderboard">
+  <div style="max-width:860px;margin:0 auto;">
+    <span class="sec-label">✦ Leaderboard</span>
+    <h2 class="sec-title">Real Rankings</h2>
+    <p class="sec-sub">Built as players join and play. No seeded data — ever.</p>
+    <div class="lb-grid">
+      <div class="card"><div class="lb-head"><span style="font-size:1.1rem;">🔥</span><div><div class="lb-ht">Top Question Creators</div><div class="lb-hs">Most questions submitted</div></div></div><div id="lb-creators"></div></div>
+      <div class="card"><div class="lb-head"><span style="font-size:1.1rem;">⚡</span><div><div class="lb-ht">Battle Champions</div><div class="lb-hs">Most battles won</div></div></div><div id="lb-champions"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRESS -->
+<section class="section" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div style="max-width:860px;margin:0 auto;">
+    <span class="sec-label">⟡ Personal Progress</span>
+    <h2 class="sec-title">Your Growth, Visualized</h2>
+    <p class="sec-sub">Your real data only. Login to unlock.</p>
+    <div class="prog-grid">
+      <div class="card"><div class="prog-head">Solves Over Time</div><div class="prog-sub">Past 30 days</div><div id="g-progress"></div></div>
+      <div class="card"><div class="prog-head">Battle Win Rate</div><div class="prog-sub">Past 7 days</div><div id="g-battles"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing" style="text-align:center;">
+  <span class="sec-label">⋆ Pricing</span>
+  <h2 class="sec-title">Simple & Honest</h2>
+  <p class="sec-sub" style="margin:0 auto;">Start completely free. Pro plan coming soon.</p>
+  <div class="price-grid">
+    <div class="price-card" style="border-color:var(--star);box-shadow:0 0 28px rgba(244,196,48,.1);">
+      <div class="price-plan">Free — Available Now</div>
+      <div class="price-amt" style="color:var(--star);">₹0</div>
+      <p class="price-desc">Everything you need to start battling. No card needed, ever.</p>
+      <ul class="price-feats">
+        <li><span class="ck">✓</span> Generate coding questions from situations</li>
+        <li><span class="ck">✓</span> Join & fight live battles</li>
+        <li><span class="ck">✓</span> Earn Warrior, Eagle, Divine badges</li>
+        <li><span class="ck">✓</span> Share badges on LinkedIn</li>
+        <li><span class="ck">✓</span> Personal progress tracking</li>
+        <li><span class="ck">✓</span> Full leaderboard access</li>
+      </ul>
+      <button class="btn-price btn-price-pro" onclick="openModal()">Get started free ✦</button>
+    </div>
+    <div class="price-card" style="opacity:.7;">
+      <div class="price-plan">Pro — Coming Soon</div>
+      <div class="price-amt" style="color:var(--t2);"><sup style="font-size:.9rem;">₹</sup>29<span class="per">/mo</span></div>
+      <p class="price-desc">Payments via Razorpay. Launching soon.</p>
+      <ul class="price-feats">
+        <li style="color:var(--t3);"><span>⟡</span> Full solve history graphs</li>
+        <li style="color:var(--t3);"><span>⟡</span> Hint system during battles</li>
+        <li style="color:var(--t3);"><span>⟡</span> View opponent solutions post-battle</li>
+        <li style="color:var(--t3);"><span>⟡</span> Priority matchmaking</li>
+        <li style="color:var(--t3);"><span>⟡</span> Custom battle rooms</li>
+      </ul>
+      <button class="btn-price btn-price-free" disabled style="opacity:.5;cursor:not-allowed;">Coming Soon</button>
+      <div class="rp-note" style="margin-top:10px;">Will be powered by <span class="rp-chip">⚡ Razorpay</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- LANGUAGES -->
+<section class="section" style="text-align:center;background:var(--surface);border-top:1px solid var(--border);">
+  <span class="sec-label">⟡ All Languages</span>
+  <h2 class="sec-title">Code in Whatever You Know</h2>
+  <div class="lang-wrap">
+    <div class="lang-chip">JavaScript</div><div class="lang-chip">Python</div><div class="lang-chip">Java</div><div class="lang-chip">C++</div><div class="lang-chip">Go</div><div class="lang-chip">TypeScript</div><div class="lang-chip">Rust</div><div class="lang-chip">C#</div><div class="lang-chip">Ruby</div><div class="lang-chip">Swift</div><div class="lang-chip">Kotlin</div><div class="lang-chip">PHP</div><div class="lang-chip">Scala</div><div class="lang-chip">Dart</div><div class="lang-chip">Elixir</div><div class="lang-chip">Objective-C</div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-logo">Crack It <span style="color:var(--star);">⋆˙⟡</span></div>
+  <div class="f-copy">Built for real coders. Powered by Supabase + Vercel.</div>
+  <div class="f-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a></div>
+</footer>
+
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// REPLACE THESE WITH YOUR ACTUAL KEYS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const SUPABASE_URL  = 'https://tcawycumfawsxkcfnlpv.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjYXd5Y3VtZmF3c3hrY2ZubHB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MDc5MTEsImV4cCI6MjA5NDQ4MzkxMX0.8RJOpUxiMdveBMaZ1vadyObZLenumzvYYcBg5arIGYU';
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+let currentUser = null;
+let selectedDiff = 'easy';
+
+// ── HELPERS ──────────────────────────────
+function navTo(id){ document.getElementById(id)?.scrollIntoView({behavior:'smooth'}); }
+function openModal(){ document.getElementById('modal').classList.add('open'); }
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+document.getElementById('modal').addEventListener('click', e=>{ if(e.target===document.getElementById('modal')) closeModal(); });
+
+function setDiff(d) {
+  selectedDiff = d;
+  ['easy','medium','hard'].forEach(x=>{
+    const b = document.getElementById('diff-'+x);
+    b.className = 'diff-btn' + (x===d ? ' active-'+x : '');
+  });
+}
+
+// ── STARS ────────────────────────────────
+const starsEl = document.getElementById('stars');
+for(let i=0;i<120;i++){
+  const s=document.createElement('div'); s.className='star-el';
+  const size = Math.random()*1.8+.5;
+  s.style.cssText=`width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;background:rgba(${Math.random()>.5?'244,196,48':'200,215,255'},${Math.random()*.6+.2});--dur:${Math.random()*3+2}s;--delay:${Math.random()*4}s;`;
+  starsEl.appendChild(s);
+}
+
+// ── AUTH ────────────────────────────────
+async function signInGoogle(){
+  await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.origin } });
+}
+
+async function signOut(){
+  await sb.auth.signOut();
+  currentUser = null;
+  window.location.reload();
+}
+
+sb.auth.onAuthStateChange(async(_, session)=>{
+  if(session?.user){
+    currentUser = session.user;
+    closeModal();
+    showNavUser(currentUser);
+    await upsertProfile(currentUser);
+    const prof = await getProfile(currentUser.id);
+    renderBadges(prof);
+    loadUserGraphs(currentUser.id);
+    loadQuestions();
+  } else {
+    currentUser = null;
+    showNavGuest();
+    renderBadges(null);
+    showProgressLocked();
+  }
+});
+
+async function getProfile(uid){
+  try {
+    const { data } = await sb.from('profiles').select('*').eq('id', uid).single();
+    return data;
+  } catch(e){ return null; }
+}
+
+async function upsertProfile(u){
+  try {
+    const { data } = await sb.from('profiles').select('id').eq('id', u.id).single();
+    if(!data){
+      await sb.from('profiles').insert({
+        id: u.id, username: u.user_metadata?.name||u.email.split('@')[0],
+        avatar_url: u.user_metadata?.avatar_url||null, badge:'none',
+        easy_solved:0, medium_solved:0, hard_solved:0, battles_won:0, questions_count:0
+      });
+    }
+  } catch(e){
+    try {
+      await sb.from('profiles').insert({
+        id: u.id, username: u.user_metadata?.name||u.email.split('@')[0],
+        avatar_url: u.user_metadata?.avatar_url||null, badge:'none',
+        easy_solved:0, medium_solved:0, hard_solved:0, battles_won:0, questions_count:0
+      });
+    } catch(e2){}
+  }
+}
+
+function showNavUser(u){
+  const name = u.user_metadata?.name||u.email.split('@')[0];
+  const av = u.user_metadata?.avatar_url;
+  document.getElementById('nav-auth').innerHTML = `
+    <span class="nav-uname">${name}</span>
+    ${av ? `<img src="${av}" class="nav-avatar"/>` : `<div style="width:30px;height:30px;border-radius:50%;background:var(--card2);border:1.5px solid var(--star);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--star);">${name[0].toUpperCase()}</div>`}
+    <button onclick="signOut()" style="padding:5px 12px;background:transparent;border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;">Sign out</button>`;
+}
+function showNavGuest(){
+  document.getElementById('nav-auth').innerHTML = `<button class="btn btn-ghost" onclick="openModal()">Log in</button><button class="btn btn-primary" onclick="openModal()">Start free ✦</button>`;
+}
+
+// ── AI QUESTION GENERATOR ────────────────
+async function generateQuestion(){
+  const situation = document.getElementById('situation-input').value.trim();
+  if(!situation){ alert('Please describe a situation first!'); return; }
+
+  const btn = document.getElementById('gen-btn');
+  const btnText = document.getElementById('gen-btn-text');
+  const resultEl = document.getElementById('gen-result');
+  const lang = document.getElementById('lang-select').value;
+
+  btn.disabled=true;
+  btnText.innerHTML='<span class="spinner"></span> Analyzing…';
+  resultEl.style.display='none';
+
+  try {
+    const langNote = lang==='any' ? 'Any programming language' : `Preferred language: ${lang}`;
+    const prompt = `You are an expert coding question designer for a competitive programming platform.
+
+A user described this real-life situation:
+"${situation}"
+
+Difficulty requested: ${selectedDiff}
+${langNote}
+
+Your job:
+1. FIRST decide: can this situation be turned into a meaningful, solvable coding question? 
+   - It must have a clear computational problem (counting, optimization, search, data structure, algorithm, etc.)
+   - It must have defined inputs and outputs
+   - It must be solvable with code
+
+2. If YES, generate a proper coding question in this EXACT JSON format:
+{
+  "valid": true,
+  "title": "Short descriptive title",
+  "difficulty": "${selectedDiff}",
+  "problem": "Full problem statement with context from the situation",
+  "examples": [{"input": "...", "output": "...", "explanation": "..."}],
+  "constraints": ["constraint 1", "constraint 2"],
+  "hint": "One helpful hint without giving away the solution",
+  "tags": ["array", "math"] 
+}
+
+3. If NO (the situation can't form a coding question), respond with this EXACT JSON format:
+{
+  "valid": false,
+  "reason": "Clear explanation of why this can't become a coding question",
+  "suggestions": [
+    "Specific suggestion 1 to make it work",
+    "Specific suggestion 2",
+    "Specific suggestion 3"
+  ]
+}
+
+Respond ONLY with valid JSON. No markdown, no explanation outside the JSON.`;
+
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ situation, difficulty: selectedDiff, language: lang })
+    });
+    const parsed = await res.json();
+    if(parsed.error) throw new Error(parsed.error);
+
+    resultEl.style.display='block';
+
+    if(parsed.valid){
+      // Valid question
+      const diffClass = parsed.difficulty==='hard'?'chip-rose':parsed.difficulty==='medium'?'chip-yellow':'chip-mint';
+      const examplesHtml = (parsed.examples||[]).map(e=>`
+        <div style="background:var(--bg);border-radius:7px;padding:10px 12px;margin-top:8px;font-family:'Space Mono',monospace;font-size:.72rem;line-height:1.7;">
+          <span style="color:var(--sky);">Input:</span> ${e.input}<br/>
+          <span style="color:var(--mint);">Output:</span> ${e.output}<br/>
+          ${e.explanation?`<span style="color:var(--t3);">${e.explanation}</span>`:''}
+        </div>`).join('');
+      const constraintsHtml = (parsed.constraints||[]).map(c=>`<li style="font-size:.78rem;color:var(--t2);padding:3px 0;">• ${c}</li>`).join('');
+      const tagsHtml = (parsed.tags||[]).map(t=>`<span class="chip chip-sky">${t}</span>`).join('');
+
+      resultEl.innerHTML=`
+        <div class="qresult-card">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+            <span class="chip ${diffClass}">${parsed.difficulty}</span>
+            ${tagsHtml}
+          </div>
+          <div class="qresult-title">${parsed.title}</div>
+          <p class="qresult-body">${parsed.problem}</p>
+          <div style="margin-top:14px;"><div style="font-size:.72rem;font-weight:600;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">Examples</div>${examplesHtml}</div>
+          ${constraintsHtml?`<div style="margin-top:14px;"><div style="font-size:.72rem;font-weight:600;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Constraints</div><ul style="list-style:none;">${constraintsHtml}</ul></div>`:''}
+          ${parsed.hint?`<div style="margin-top:14px;background:rgba(244,196,48,.06);border:1px solid rgba(244,196,48,.15);border-radius:8px;padding:10px 14px;font-size:.8rem;color:var(--star);">💡 ${parsed.hint}</div>`:''}
+          <div class="qresult-actions">
+            <button class="btn-action btn-publish" id="publish-btn" onclick="publishQuestion(${JSON.stringify(parsed).replace(/"/g,'&quot;')})">✦ Publish to Arena</button>
+            <button class="btn-action btn-refine" onclick="document.getElementById('situation-input').focus()">↺ Try Another</button>
+          </div>
+        </div>`;
+    } else {
+      // Invalid — show reason + suggestions
+      const sugsHtml = (parsed.suggestions||[]).map((s,i)=>`<button class="sug-btn" onclick="applySuggestion('${s.replace(/'/g,"\\'")}')">↗ ${s}</button>`).join('');
+      resultEl.innerHTML=`
+        <div class="invalid-msg">
+          <div style="font-weight:600;margin-bottom:8px;">⚠ Can't generate a coding question from this</div>
+          <div>${parsed.reason}</div>
+          ${parsed.suggestions?.length ? `<div class="invalid-suggestions"><div style="font-size:.72rem;font-weight:600;color:var(--rose);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase;">Try these instead:</div>${sugsHtml}</div>`:'' }
+        </div>`;
+    }
+  } catch(err){
+    resultEl.style.display='block';
+    resultEl.innerHTML=`<div class="invalid-msg">Something went wrong: ${err.message}. Please try again.</div>`;
+  } finally {
+    btn.disabled=false;
+    btnText.textContent='✦ Generate Question';
+  }
+}
+
+function applySuggestion(text){
+  document.getElementById('situation-input').value = text;
+  document.getElementById('situation-input').focus();
+}
+
+async function publishQuestion(q){
+  if(!currentUser){ openModal(); return; }
+  const publishBtn = document.getElementById('publish-btn');
+  if(publishBtn){ publishBtn.textContent='Publishing…'; publishBtn.disabled=true; }
+
+  const { data, error } = await sb.from('questions').insert({
+    title: q.title, difficulty: q.difficulty, problem: q.problem,
+    examples: q.examples, constraints: q.constraints, hint: q.hint, tags: q.tags,
+    created_by: currentUser.id, language: document.getElementById('lang-select').value
+  }).select().single();
+
+  if(!error && data){
+    // Update questions count
+    const prof = await getProfile(currentUser.id);
+    await sb.from('profiles').update({ questions_count: (prof?.questions_count||0)+1 }).eq('id',currentUser.id);
+    loadLeaderboard(); 
+    loadStats();
+    loadQuestions();
+    // Show success with solve button
+    if(publishBtn){
+      publishBtn.textContent='✓ Published!';
+      publishBtn.style.background='var(--teal)';
+    }
+    // Add solve button
+    const actions = document.querySelector('.qresult-actions');
+    if(actions && data.id){
+      const solveBtn = document.createElement('button');
+      solveBtn.className='btn-action btn-publish';
+      solveBtn.style.background='var(--star)';
+      solveBtn.textContent='▶ Solve Now →';
+      solveBtn.onclick=()=>window.location.href=`/solve.html?id=${data.id}`;
+      actions.appendChild(solveBtn);
+    }
+  } else {
+    if(publishBtn){ publishBtn.textContent='✦ Publish to Arena'; publishBtn.disabled=false; }
+    alert('Error publishing. Try again!');
+  }
+}
+
+// ── FIND MATCH ────────────────────────────
+async function findMatch(){
+  if(!currentUser){ openModal(); return; }
+  const area = document.getElementById('match-btn-area');
+  area.innerHTML=`<div class="searching-anim"><div class="search-dot"></div><div class="search-dot"></div><div class="search-dot"></div><span>Finding opponent…</span></div>`;
+  // Check for someone waiting
+  const { data:waiting } = await sb.from('matchmaking').select('*').eq('status','waiting').neq('user_id',currentUser.id).order('joined_at',{ascending:true}).limit(1);
+  if(waiting && waiting.length>0){
+    const opponent = waiting[0];
+    await sb.from('matchmaking').delete().eq('id',opponent.id);
+    // Get a random question
+    const { data:questions } = await sb.from('questions').select('*').limit(20);
+    if(questions&&questions.length>0){
+      const q = questions[Math.floor(Math.random()*questions.length)];
+      await sb.from('battles').insert({ player1_id:opponent.user_id, player2_id:currentUser.id, question_id:q.id, question_title:q.title, question_difficulty:q.difficulty, status:'active', started_at:new Date().toISOString() });
+      area.innerHTML=`<div style="color:var(--mint);font-size:.88rem;font-weight:600;">✓ Matched! Battle starting…</div>`;
+      setTimeout(()=>{ area.innerHTML=`<button class="btn-match" onclick="findMatch()">⚔ Find Opponent</button>`; loadBattles(); },2500);
+    }
+  } else {
+    await sb.from('matchmaking').upsert({ user_id:currentUser.id, status:'waiting', joined_at:new Date().toISOString() });
+    area.innerHTML=`<div class="searching-anim"><div class="search-dot"></div><div class="search-dot"></div><div class="search-dot"></div><span>In queue — waiting for opponent…</span></div><button style="margin-top:14px;width:100%;padding:9px;background:var(--card2);border:1px solid var(--border2);color:var(--t2);border-radius:8px;font-family:'Space Grotesk',sans-serif;font-weight:600;cursor:pointer;" onclick="leaveQueue()">Leave Queue</button>`;
+  }
+}
+
+async function leaveQueue(){
+  if(currentUser) await sb.from('matchmaking').delete().eq('user_id',currentUser.id);
+  document.getElementById('match-btn-area').innerHTML=`<button class="btn-match" onclick="findMatch()">⚔ Find Opponent</button>`;
+}
+
+// ── BADGES ──────────────────────────────────────
+const BADGE_CFG = {
+  warrior:{ icon:'⚔️', name:'WARRIOR', cardClass:'bcard-w', color:'var(--sky)',  req:'10 Easy',   field:'easy_solved',   reqN:10 },
+  eagle:  { icon:'🦅', name:'EAGLE',   cardClass:'bcard-e', color:'var(--mint)', req:'10 Medium', field:'medium_solved', reqN:10 },
+  divine: { icon:'⚡', name:'DIVINE',  cardClass:'bcard-d', color:'var(--star)', req:'10 Hard',   field:'hard_solved',   reqN:10 },
+};
+
+function renderBadges(profile) {
+  const el = document.getElementById('badges-row');
+  if(!el) return;
+  el.innerHTML = ['warrior','eagle','divine'].map(key=>{
+    const cfg = BADGE_CFG[key];
+    const solved = profile ? (profile[cfg.field]||0) : 0;
+    const earned = solved >= cfg.reqN;
+    const pct    = Math.min(100, Math.round((solved/cfg.reqN)*100));
+    const badgeUrl = `${window.location.origin}/badge.html?user=${profile?.id}&badge=${key}`;
+
+    return `
+    <div class="badge-card ${cfg.cardClass} ${earned?'badge-earned':'badge-locked'}">
+      <span class="b-ico">${cfg.icon}</span>
+      <div class="b-name" style="color:${cfg.color};">${cfg.name}</div>
+      <div class="b-req">Solve <strong style="color:var(--t1);">${cfg.req}</strong> questions</div>
+      ${profile ? `
+        <div class="badge-progress-bar">
+          <div class="badge-progress-fill" style="width:${pct}%;background:${cfg.color};opacity:.8;"></div>
+        </div>
+        <div style="font-size:.67rem;color:var(--t2);margin-top:5px;text-align:center;">${solved}/${cfg.reqN} solved</div>
+        ${earned
+          ? `<button class="badge-share-btn" onclick="openBadgePage('${badgeUrl}')">
+               <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+               Share on LinkedIn
+             </button>`
+          : `<div class="badge-lock-label">🔒 Locked</div>`
+        }
+      ` : `<div style="margin-top:10px;font-size:.72rem;color:var(--t3);">Solve questions to unlock! 🔒</div>`}
+    </div>`;
+  }).join('');
+}
+
+function openBadgePage(url){ window.open(url,'_blank'); }
+
+// ── STATS ────────────────────────────────
+async function loadStats(){
+  const [q,p,b]=await Promise.all([
+    sb.from('questions').select('id',{count:'exact',head:true}),
+    sb.from('profiles').select('id',{count:'exact',head:true}),
+    sb.from('battles').select('id',{count:'exact',head:true})
+  ]);
+  cnt(document.getElementById('st-q'),q.count||0);
+  cnt(document.getElementById('st-p'),p.count||0);
+  cnt(document.getElementById('st-b'),b.count||0);
+}
+function cnt(el,n){ if(!n){el.textContent='0';return;} let s=null; const r=ts=>{if(!s)s=ts;const p=Math.min((ts-s)/1600,1);el.textContent=Math.floor((1-Math.pow(1-p,3))*n);if(p<1)requestAnimationFrame(r);}; requestAnimationFrame(r); }
+
+// ── TICKER ────────────────────────────────
+async function loadTicker(){
+  const {data}=await sb.from('battles').select('winner_name,loser_name,question_title,duration_seconds').eq('status','completed').order('created_at',{ascending:false}).limit(8);
+  const el=document.getElementById('ticker-inner');
+  if(!data||data.length===0){el.innerHTML='<span class="t-empty">No battles yet — be the first to fight! ⚔</span>';return;}
+  const items=data.map(b=>`<span class="ti"><span class="tdot"></span><span class="twin">${b.winner_name}</span> defeated ${b.loser_name} in ${Math.floor(b.duration_seconds/60)}:${String(b.duration_seconds%60).padStart(2,'0')} · "${b.question_title}"</span>`);
+  el.innerHTML=`<div class="t-scroll">${[...items,...items].join('')}</div>`;
+}
+
+// ── BATTLES ────────────────────────────────
+async function loadBattles(){
+  try {
+    const {data}=await sb.from('battles').select(`id,question_title,question_difficulty,p1:profiles!battles_player1_id_fkey(username,avatar_url,badge),p2:profiles!battles_player2_id_fkey(username,avatar_url,badge)`).eq('status','active').order('started_at',{ascending:false}).limit(3);
+    const el=document.getElementById('battles-container');
+    if(!data||data.length===0){
+      el.innerHTML=`
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px;text-align:center;margin-bottom:20px;">
+          <div style="font-size:2rem;margin-bottom:12px;">🏟️</div>
+          <div style="font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:8px;">No Active Battles Right Now</div>
+          <div style="font-size:.82rem;color:var(--t2);line-height:1.65;">When two players are dueling live, you can watch them here in real-time.<br/>Generate a question and find an opponent to start one!</div>
+        </div>`;
+      return;
+    }
+    const bdg=b=>b==='divine'?`<span class="chip chip-yellow">⚡ DIVINE</span>`:b==='eagle'?`<span class="chip chip-mint">🦅 EAGLE</span>`:b==='warrior'?`<span class="chip chip-sky">⚔️ WARRIOR</span>`:'';
+    const ava=(p,col)=>p?.avatar_url?`<img src="${p.avatar_url}" class="pav-img" style="border:1.5px solid ${col};"/>`:`<div class="pav-init" style="background:var(--card2);border:1.5px solid ${col};color:${col};">${(p?.username||'?')[0].toUpperCase()}</div>`;
+    const dc=d=>d==='hard'?'var(--rose)':d==='medium'?'var(--star)':'var(--mint)';
+    el.innerHTML=data.map(b=>`
+      <div class="battle-outer" style="margin-top:0;margin-bottom:16px;">
+        <div class="battle-row">
+          <div class="player-card left"><div class="ph">${ava(b.p1,'var(--mint)')}<div><div class="p-name">${b.p1?.username||'Player 1'}</div>${bdg(b.p1?.badge)}</div></div><div class="code-area">⌨ solving…</div><div class="pbar"><div class="pf" style="background:linear-gradient(90deg,var(--mint),var(--sky));width:0%"></div></div></div>
+          <div class="vs-circle">VS</div>
+          <div class="player-card right"><div class="ph">${ava(b.p2,'var(--rose)')}<div><div class="p-name">${b.p2?.username||'Player 2'}</div>${bdg(b.p2?.badge)}</div></div><div class="code-area">⌨ solving…</div><div class="pbar"><div class="pf" style="background:linear-gradient(90deg,var(--rose),var(--lilac));width:0%"></div></div></div>
+        </div>
+        <div class="battle-q"><span class="chip" style="background:rgba(0,0,0,.2);color:${dc(b.question_difficulty)};border:1px solid ${dc(b.question_difficulty)};white-space:nowrap;">${b.question_difficulty}</span><span class="bq-text">${b.question_title}</span></div>
+      </div>`).join('');
+  } catch(e){ console.log('battles error:',e); }
+}
+
+// ── QUESTIONS LIST ────────────────────────
+async function loadQuestions(){
+  try {
+    const {data} = await sb.from('questions')
+      .select('id,title,difficulty,tags,created_at,created_by')
+      .order('created_at',{ascending:false})
+      .limit(20);
+    const el = document.getElementById('questions-container');
+    if(!el) return;
+    if(!data||data.length===0){
+      el.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--t2);font-size:.84rem;">No questions yet — generate and publish the first one! ✦</div>`;
+      return;
+    }
+    const dc=d=>d==='hard'?'chip-rose':d==='medium'?'chip-yellow':'chip-mint';
+    el.innerHTML=data.map(q=>`
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:12px;transition:transform .2s,border-color .2s;" onmouseover="this.style.transform='translateY(-3px)';this.style.borderColor='var(--border2)'" onmouseout="this.style.transform='';this.style.borderColor='var(--border)'">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="chip ${dc(q.difficulty)}">${q.difficulty}</span>
+          ${(q.tags||[]).slice(0,2).map(t=>`<span class="chip chip-sky">${t}</span>`).join('')}
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:var(--t1);line-height:1.3;">${q.title}</div>
+        <div style="font-size:.72rem;color:var(--t3);">by Community</div>
+        <button onclick="window.location.href='/solve.html?id=${q.id}'" style="margin-top:auto;width:100%;padding:9px;background:var(--star);color:#0f1117;border:none;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;">▶ Solve Now</button>
+        ${currentUser && q.created_by === currentUser.id ? `<button onclick="deleteQuestion('${q.id}',this)" style="width:100%;padding:7px;background:transparent;color:var(--rose);border:1px solid rgba(251,113,133,.2);border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;margin-top:4px;">🗑 Delete</button>` : ''}
+      </div>`).join('');
+  } catch(e){ console.log('questions error:',e); }
+}
+
+async function deleteQuestion(id, btn){
+  if(!confirm('Delete this question?')) return;
+  btn.textContent = 'Deleting…';
+  const { error } = await sb.from('questions').delete().eq('id', id);
+  if(!error){
+    const prof = await getProfile(currentUser.id);
+    await sb.from('profiles').update({ questions_count: Math.max(0,(prof?.questions_count||1)-1) }).eq('id',currentUser.id);
+    loadQuestions();
+    loadStats();
+  } else {
+    btn.textContent = '🗑 Delete';
+    alert('Could not delete. Try again!');
+  }
+}
+
+// ── LEADERBOARD ────────────────────────────
+async function loadLeaderboard(){
+  const [cr,ch]=await Promise.all([
+    sb.from('profiles').select('username,badge,questions_count').order('questions_count',{ascending:false}).limit(5),
+    sb.from('profiles').select('username,badge,battles_won').order('battles_won',{ascending:false}).limit(5)
+  ]);
+  const rk=i=>i===0?'g':i===1?'s':i===2?'b':'';
+  const bdg=b=>b==='divine'?`<span class="chip chip-yellow" style="font-size:.55rem;padding:1px 5px;">⚡</span>`:b==='eagle'?`<span class="chip chip-mint" style="font-size:.55rem;padding:1px 5px;">🦅</span>`:b==='warrior'?`<span class="chip chip-sky" style="font-size:.55rem;padding:1px 5px;">⚔️</span>`:'';
+  const emp=(ico,t,d)=>`<div class="empty"><div class="empty-ico">${ico}</div><div class="empty-t">${t}</div><div class="empty-d">${d}</div></div>`;
+  const crEl=document.getElementById('lb-creators'), chEl=document.getElementById('lb-champions');
+  const crd=(cr.data||[]).filter(r=>r.questions_count>0);
+  const chd=(ch.data||[]).filter(r=>r.battles_won>0);
+  crEl.innerHTML=crd.length?crd.map((r,i)=>`<div class="lb-row"><div class="lb-rk ${rk(i)}">${String(i+1).padStart(2,'0')}</div><div class="lb-un">${r.username} ${bdg(r.badge)}</div><div class="lb-sc">${r.questions_count} Q</div></div>`).join(''):emp('📭','No Questions Yet','Be the first to generate and publish!');
+  chEl.innerHTML=chd.length?chd.map((r,i)=>`<div class="lb-row"><div class="lb-rk ${rk(i)}">${String(i+1).padStart(2,'0')}</div><div class="lb-un">${r.username} ${bdg(r.badge)}</div><div class="lb-sc">${r.battles_won} W</div></div>`).join(''):emp('🏟️','No Battles Yet','Fight your first battle to appear here.');
+}
+
+// ── PROGRESS ────────────────────────────────
+function showProgressLocked(){
+  const lock=id=>document.getElementById(id).innerHTML=`<div class="graph-locked"><div class="lock-ico">🔒</div><div class="lock-t">Log in to see your progress</div><button class="btn btn-ghost" style="margin-top:8px;font-size:.72rem;padding:6px 14px;" onclick="openModal()">Log In</button></div>`;
+  lock('g-progress'); lock('g-battles');
+}
+async function loadUserGraphs(uid){
+  const {data:sh}=await sb.from('solve_history').select('solved_at,difficulty').eq('user_id',uid).gte('solved_at',new Date(Date.now()-30*864e5).toISOString()).order('solved_at',{ascending:true});
+  const gp=document.getElementById('g-progress');
+  if(!sh||sh.length===0){gp.innerHTML=`<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">📊</div><div class="lock-t">No solves yet. Generate & solve questions to see your graph.</div></div>`;} 
+  else {
+    const dm={};sh.forEach(d=>{const day=d.solved_at.split('T')[0];if(!dm[day])dm[day]=0;dm[day]++;});
+    const lbls=Object.keys(dm).slice(-14);const mx=Math.max(...lbls.map(d=>dm[d]),1);
+    gp.innerHTML=`<div style="display:flex;gap:5px;align-items:flex-end;height:130px;overflow:hidden;">${lbls.map(d=>`<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;flex:1;gap:3px;"><div style="width:100%;background:var(--star);border-radius:3px 3px 1px 1px;opacity:.85;height:${Math.round((dm[d]/mx)*110)+8}px;min-height:5px;"></div><span style="font-size:.48rem;color:var(--t3);transform:rotate(-40deg);white-space:nowrap;">${d.slice(5)}</span></div>`).join('')}</div>`;
+  }
+  const {data:bh}=await sb.from('battles').select('created_at,winner_id').or(`player1_id.eq.${uid},player2_id.eq.${uid}`).gte('created_at',new Date(Date.now()-7*864e5).toISOString()).eq('status','completed');
+  const gb=document.getElementById('g-battles');
+  if(!bh||bh.length===0){gb.innerHTML=`<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">⚔️</div><div class="lock-t">No battles this week.</div></div>`;}
+  else {
+    const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];const w=Array(7).fill(0);const t=Array(7).fill(0);
+    bh.forEach(b=>{const d=new Date(b.created_at).getDay();t[d]++;if(b.winner_id===uid)w[d]++;});
+    const mx=Math.max(...t,1);
+    gb.innerHTML=`<div style="display:flex;gap:6px;align-items:flex-end;height:130px;">${days.map((d,i)=>`<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;flex:1;gap:3px;"><div style="width:100%;background:${w[i]>0?'var(--mint)':'var(--border)'};border-radius:3px 3px 1px 1px;height:${Math.round((t[i]/mx)*110)+8}px;min-height:5px;opacity:.9;"></div><span style="font-size:.6rem;color:var(--t2);">${d}</span></div>`).join('')}</div><div style="margin-top:6px;font-size:.65rem;color:var(--t3);">Green = wins</div>`;
+  }
+}
+
+// ── REALTIME ────────────────────────────────
+sb.channel('rt')
+  .on('postgres_changes',{event:'*',schema:'public',table:'battles'},()=>{loadBattles();loadTicker();loadStats();})
+  .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},()=>{loadLeaderboard();loadStats();})
+  .subscribe();
+
+// ── INIT ─────────────────────────────────────
+(async()=>{
+  // Handle Google OAuth redirect
+  if(window.location.hash.includes('access_token')){
+    const p = new URLSearchParams(window.location.hash.substring(1));
+    const at = p.get('access_token');
+    const rt = p.get('refresh_token');
+    if(at){
+      await sb.auth.setSession({ access_token:at, refresh_token:rt||'' });
+      window.location.hash = '';
+      window.location.reload();
+      return;
+    }
+  }
+  try {
+    const {data:{session}}=await sb.auth.getSession();
+    if(session?.user){
+      currentUser=session.user;
+      showNavUser(currentUser);
+      await upsertProfile(currentUser);
+      const prof = await getProfile(currentUser.id);
+      renderBadges(prof);
+      loadUserGraphs(currentUser.id);
+    } else {
+      showProgressLocked();
+      renderBadges(null);
+    }
+  } catch(e){ showProgressLocked(); renderBadges(null); }
+  await Promise.all([loadStats(),loadTicker(),loadBattles(),loadLeaderboard(),loadQuestions()]);
+})();
+</script>
+</body>
+</html>
