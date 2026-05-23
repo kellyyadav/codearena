@@ -17,7 +17,6 @@
   --border2:  #334066;
 
   --star:     #f4c430;
-  
   --sky:      #60a5fa;
   --lilac:    #a78bfa;
   --rose:     #fb7185;
@@ -1292,11 +1291,7 @@ async function loadUserGraphs(uid){
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 36px; height: 100%;">
           <div style="width: 28px; background: var(--star); border-radius: 6px 6px 3px 3px; height: ${barHeight}px; box-shadow: 0 0 4px rgba(244,196,48,0.4);"></div>
           <span style="font-size: 0.55rem; color: var(--t2); margin-top: 6px; white-space: nowrap;">${d.slice(5)}</span>
-        </div>
-      `;
-    }).join('')}
-  </div>
-`; 
+        </div>`;}).join('')}</div>`; 
 }
   const {data:bh}=await sb.from('battles').select('created_at,winner_id').or(`player1_id.eq.${uid},player2_id.eq.${uid}`).gte('created_at',new Date(Date.now()-7*864e5).toISOString()).eq('status','completed');
   const gb=document.getElementById('g-battles');
