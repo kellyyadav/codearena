@@ -844,15 +844,32 @@ async function signInGoogle(){
 async function signOut(){
   console.log('Sign out clicked!');
 
-  await sb.auth.signOut({ scope: 'global' });
+  try{
+    await sb.auth.signOut({ scope: 'global' });
 
-  sessionStorage.clear();
+    currentUser = null;
 
-  currentUser = null;
+    showNavGuest();
 
-  showNavGuest();
+    // remove ONLY supabase auth keys
+    Object.keys(localStorage).forEach((key)=>{
+      if(key.includes('supabase')){
+        localStorage.removeItem(key);
+      }
+    });
 
-  window.location.reload();
+    Object.keys(sessionStorage).forEach((key)=>{
+      if(key.includes('supabase')){
+        sessionStorage.removeItem(key);
+      }
+    });
+
+    // redirect clean
+    window.location.href = '/';
+
+  }catch(err){
+    console.error(err);
+  }
 }
 sb.auth.onAuthStateChange(async(_, session)=>{
   if(session?.user){
