@@ -848,7 +848,7 @@ async function signInGoogle(){
   });
 }
 async function signOut(){
-  await sb.auth.signOut();
+  await sb.auth.signOut({ scope: 'global' });
 }
 sb.auth.onAuthStateChange(async(_, session)=>{
   if(session?.user){
