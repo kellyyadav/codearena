@@ -913,25 +913,78 @@ async function upsertProfile(u){
 }
 
 function showNavUser(u){
-  const name = u.user_metadata?.name||u.email.split('@')[0];
+  const el = document.getElementById('nav-auth');
+  if(!el) return;
+
+  const name = u.user_metadata?.name || u.email.split('@')[0];
   const av = u.user_metadata?.avatar_url;
-  document.getElementById('nav-auth').innerHTML = `
+
+  el.innerHTML = `
     <span class="nav-uname">${name}</span>
-    ${av ? `<img src="${av}" class="nav-avatar"/>` : `<div style="width:30px;height:30px;border-radius:50%;background:var(--card2);border:1.5px solid var(--star);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--star);">${name[0].toUpperCase()}</div>`}
-    <button onclick="event.preventDefault(); signOut(); return false;"style="padding:5px 12px;background:var(--star);border:1px solid rgba(251,113,133,.3);color:var(--rose);border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;">Sign out</button>`;
-  document.getElementById('manual-signout-btn').style.display = 'block';
-  
+
+    ${
+      av
+      ? `<img src="${av}" class="nav-avatar"/>`
+      : `
+        <div style="
+          width:30px;
+          height:30px;
+          border-radius:50%;
+          background:var(--card2);
+          border:1.5px solid var(--star);
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          font-weight:700;
+          color:var(--star);
+        ">
+          ${name[0].toUpperCase()}
+        </div>
+      `
+    }
+
+    <button
+      onclick="signOut()"
+      style="
+        padding:5px 12px;
+        background:transparent;
+        border:1px solid rgba(251,113,133,.3);
+        color:var(--rose);
+        border-radius:6px;
+        font-size:.72rem;
+        cursor:pointer;
+        font-family:'Space Grotesk',sans-serif;
+        font-weight:600;
+      "
+    >
+      Sign out
+    </button>
+  `;
+
   // Update pricing button
   const freePlanBtn = document.getElementById('free-plan-btn');
+
   if(freePlanBtn){
     freePlanBtn.innerHTML = '<span style="opacity:0.7;">Your Current Plan ✓</span>';
     freePlanBtn.style.cursor = 'default';
     freePlanBtn.onclick = null;
   }
 }
+
 function showNavGuest(){
-  document.getElementById('nav-auth').innerHTML = `<button class="btn btn-ghost" onclick="openModal()">Log in</button><button class="btn btn-primary" onclick="openModal()">Start free ✦</button>`;
-  document.getElementById('manual-signout-btn').style.display = 'none';   // ✅
+  const el = document.getElementById('nav-auth');
+
+  if(!el) return;
+
+  el.innerHTML = `
+    <button class="btn btn-ghost" onclick="openModal()">
+      Log in
+    </button>
+
+    <button class="btn btn-primary" onclick="openModal()">
+      Start free ✦
+    </button>
+  `;
 }
 
 // ── AI QUESTION GENERATOR ────────────────
