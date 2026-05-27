@@ -842,34 +842,7 @@ async function signInGoogle(){
   await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.origin } });
 }
 async function signOut(){
-  console.log('Sign out clicked!');
-
-  try{
-    await sb.auth.signOut({ scope: 'global' });
-
-    currentUser = null;
-
-    showNavGuest();
-
-    // remove ONLY supabase auth keys
-    Object.keys(localStorage).forEach((key)=>{
-      if(key.includes('supabase')){
-        localStorage.removeItem(key);
-      }
-    });
-
-    Object.keys(sessionStorage).forEach((key)=>{
-      if(key.includes('supabase')){
-        sessionStorage.removeItem(key);
-      }
-    });
-
-    // redirect clean
-    window.location.href = '/';
-
-  }catch(err){
-    console.error(err);
-  }
+  await sb.auth.signOut({ scope:'global' });
 }
 sb.auth.onAuthStateChange(async(_, session)=>{
   if(session?.user){
@@ -894,11 +867,46 @@ sb.auth.onAuthStateChange(async(_, session)=>{
         gb.innerHTML = '<div class="graph-locked" style="border-style:solid;"><div class="lock-ico" style="opacity:.4;">⚔️</div><div class="lock-t">No battles yet. Join your first battle!</div></div>';
       }
     }, 300);
-  } else {
-    currentUser = null;
-    showNavGuest();
-    renderBadges(null);
+  }else {
+  currentUser = null;
+
+  showNavGuest();
+
+  renderBadges(null);
+
+  showProgressLocked();
+
+  // reset pricing button
+  const freePlanBtn = document.getElementById('free-plan-btn');
+
+  if(freePlanBtn){
+    freePlanBtn.innerHTML = '<span id="free-plan-text">Get started free ✦</span>';
+    freePlanBtn.style.cursor = 'pointer';
+    freePlanBtn.onclick = openModal;
   }
+
+  // clear graphs
+  const gp = document.getElementById('g-progress');
+  const gb = document.getElementById('g-battles');
+
+  if(gp){
+    gp.innerHTML = `
+      <div class="graph-locked">
+        <div class="lock-ico">🔒</div>
+        <div class="lock-t">Log in to see your solve progress</div>
+      </div>
+    `;
+  }
+
+  if(gb){
+    gb.innerHTML = `
+      <div class="graph-locked">
+        <div class="lock-ico">🔒</div>
+        <div class="lock-t">Log in to see your battle stats</div>
+      </div>
+    `;
+  }
+}
 });
 
 async function getProfile(uid){
