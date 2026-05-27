@@ -813,7 +813,7 @@ const { createClient } = supabase;
 
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
   auth: {
-    persistSession: false
+    persistSession: true
   }
 });
 
@@ -844,6 +844,17 @@ for(let i=0;i<120;i++){
 }
 
 // ── AUTH ────────────────────────────────
+// ── AUTH ────────────────────────────────
+
+async function signInGoogle(){
+  await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin
+    }
+  });
+}
+
 async function signOut(){
   await sb.auth.signOut();
 
@@ -851,7 +862,7 @@ async function signOut(){
 
   showNavGuest();
 
-  window.location.href = "/";
+  location.reload();
 }
 sb.auth.onAuthStateChange(async(_, session)=>{
   if(session?.user){
