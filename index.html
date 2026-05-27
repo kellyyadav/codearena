@@ -810,7 +810,15 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {   auth: {     persistSession: true,     autoRefreshToken: true,     detectSessionInUrl: true   } });
+
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});
+
 let currentUser = null;
 let selectedDiff = 'easy';
 
@@ -838,11 +846,12 @@ for(let i=0;i<120;i++){
 }
 
 // ── AUTH ────────────────────────────────
-async function signInGoogle(){
-  await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.origin } });
-}
 async function signOut(){
-  await sb.auth.signOut({ scope:'global' });
+  await sb.auth.signOut();
+
+  currentUser = null;
+
+  showNavGuest();
 }
 sb.auth.onAuthStateChange(async(_, session)=>{
   if(session?.user){
