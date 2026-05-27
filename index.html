@@ -813,9 +813,7 @@ const { createClient } = supabase;
 
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
   auth: {
-    persistSession: false,
-    autoRefreshToken: true,
-    detectSessionInUrl: true
+    persistSession: false
   }
 });
 
@@ -852,6 +850,8 @@ async function signOut(){
   currentUser = null;
 
   showNavGuest();
+
+  window.location.href = "/";
 }
 sb.auth.onAuthStateChange(async(_, session)=>{
   if(session?.user){
