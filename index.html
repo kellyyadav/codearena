@@ -846,7 +846,7 @@ async function signOut(){
   try{
     console.log('Sign out clicked!');
 
-    const { error } = await sb.auth.signOut();
+    const { error } = await sb.auth.signOut({ scope: 'local' });
 
     if(error){
       console.error('Supabase signout error:', error);
