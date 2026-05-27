@@ -843,21 +843,41 @@ async function signInGoogle(){
 }
 
 async function signOut(){
-  console.log('Sign out clicked!');
+  try{
+    console.log('Sign out clicked!');
 
-  await sb.auth.signOut();
+    const { error } = await sb.auth.signOut();
 
-  currentUser = null;
+    if(error){
+      console.error('Supabase signout error:', error);
+      alert(error.message);
+      return;
+    }
 
-  showNavGuest();
-  showProgressLocked();
-  renderBadges(null);
-  loadQuestions();
+    console.log('Auth signout complete');
 
-  localStorage.clear();
-  sessionStorage.clear();
+    currentUser = null;
 
-  window.location.reload();
+    showNavGuest();
+
+    if(typeof showProgressLocked === 'function'){
+      showProgressLocked();
+    }
+
+    renderBadges(null);
+    loadQuestions();
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    console.log('Reloading...');
+
+    window.location.href = window.location.origin;
+
+  }catch(err){
+    console.error('Full signout crash:', err);
+    alert('Logout failed: ' + err.message);
+  }
 }
 sb.auth.onAuthStateChange(async(_, session)=>{
   if(session?.user){
