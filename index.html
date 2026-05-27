@@ -844,15 +844,20 @@ async function signInGoogle(){
 
 async function signOut(){
   console.log('Sign out clicked!');
+
   await sb.auth.signOut();
-  console.log('Auth signout complete');
+
   currentUser = null;
+
   showNavGuest();
   showProgressLocked();
   renderBadges(null);
   loadQuestions();
-  console.log('UI updated');
-  alert('Signed out! Refresh page manually.');
+
+  localStorage.clear();
+  sessionStorage.clear();
+
+  window.location.reload();
 }
 sb.auth.onAuthStateChange(async(_, session)=>{
   if(session?.user){
