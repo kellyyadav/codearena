@@ -846,17 +846,14 @@ async function signOut(){
 
   await sb.auth.signOut({ scope: 'global' });
 
-  localStorage.removeItem('supabase.auth.token');
-
+  localStorage.clear();
   sessionStorage.clear();
 
   currentUser = null;
 
   showNavGuest();
 
-  setTimeout(()=>{
-    window.location.href = '/';
-  },200);
+  window.location.reload();
 }
 sb.auth.onAuthStateChange(async(_, session)=>{
   if(session?.user){
